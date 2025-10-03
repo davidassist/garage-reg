@@ -1,0 +1,42 @@
+[run]
+source = app
+omit = 
+    */venv/*
+    */env/*
+    */tests/*
+    */test_*
+    */migrations/*
+    */__pycache__/*
+    */alembic/*
+    app/main.py
+    app/worker.py
+    app/database.py
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+fail_under = 90
+
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+[html]
+directory = htmlcov
+title = GarageReg Backend Coverage Report
+
+[xml]
+output = coverage.xml
+
+# Critical modules configuration
+[coverage:paths]
+source = 
+    app/
+    */app/

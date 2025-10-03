@@ -1,0 +1,6 @@
+client_name,client_type,contact_person,email,phone,address_line_1,address_line_2,city,state,postal_code,country,contract_number
+ABC Company,commercial,John Doe,john@abc.com,+36301234567,Váci út 1.,,Budapest,Budapest,1052,Hungary,CONTRACT-001
+XYZ Residence,residential,Jane Smith,jane@xyz.hu,+36309876543,Fő utca 15.,,Debrecen,Hajdú-Bihar,4026,Hungary,CONTRACT-002
+Industrial Park Ltd,industrial,Mike Johnson,mike@industrial.hu,+36201234567,Ipari park 5.,,Székesfehérvár,Fejér,8000,Hungary,CONTRACT-003
+Green Valley Homes,residential,Anna Brown,anna@greenvalley.hu,+36205555123,Zöld völgy utca 22.,,Pécs,Baranya,7624,Hungary,CONTRACT-004
+Tech Solutions Kft,commercial,Peter Wilson,peter@techsol.hu,+36307777888,Technology út 88.,,Szeged,Csongrád-Csanád,6720,Hungary,CONTRACT-005

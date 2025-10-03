@@ -1,0 +1,12 @@
+client_name,site_name,building_name,building_code,building_type,floors,units,year_built,address_suffix
+ABC Company,Main Site,Building A,BLD-A,office,3,12,2020,
+ABC Company,Main Site,Building B,BLD-B,office,2,8,2021,
+ABC Company,Secondary Site,Warehouse 1,WH-1,warehouse,1,1,2019,
+XYZ Residence,Residence Complex,Building 1,RES-1,residential,4,16,2022,
+XYZ Residence,Residence Complex,Building 2,RES-2,residential,4,16,2022,
+XYZ Residence,Residence Complex,Community Center,CC-1,mixed,2,4,2023,
+Industrial Park Ltd,Factory Site,Production Hall,PROD-1,warehouse,1,1,2018,
+Industrial Park Ltd,Factory Site,Office Building,OFF-1,office,2,6,2019,
+Green Valley Homes,Phase 1,Villa 1,V-01,residential,2,1,2021,A szárny
+Green Valley Homes,Phase 1,Villa 2,V-02,residential,2,1,2021,B szárny
+Tech Solutions Kft,Headquarters,Main Building,MAIN-1,office,4,20,2020,

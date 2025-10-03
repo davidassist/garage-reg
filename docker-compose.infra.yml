@@ -1,0 +1,102 @@
+services:
+  # =============================================================================
+  # DATABASE
+  # =============================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: garagereg_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-garagereg}
+      POSTGRES_USER: ${DB_USER:-garagereg}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-garagereg_dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - garagereg-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-garagereg} -d ${DB_NAME:-garagereg}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # =============================================================================
+  # REDIS
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: garagereg_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+      - ./infra/redis/redis.conf:/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    networks:
+      - garagereg-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # =============================================================================
+  # OBJECT STORAGE (MinIO)
+  # =============================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: garagereg_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - garagereg-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # =============================================================================
+  # EMAIL (Development)
+  # =============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: garagereg_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - garagereg-network
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  garagereg-network:
+    driver: bridge
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local

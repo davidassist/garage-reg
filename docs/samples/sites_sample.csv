@@ -1,0 +1,7 @@
+client_name,site_name,site_code,address_line_1,address_line_2,city,state,postal_code,country,latitude,longitude,area_sqm,emergency_contact,emergency_phone
+ABC Company,Main Site,MS001,Váci út 1.,,Budapest,Budapest,1052,Hungary,47.4979,19.0402,5000,Security Desk,+36301111111
+ABC Company,Secondary Site,SS001,Váci út 25.,,Budapest,Budapest,1056,Hungary,47.5079,19.0502,3000,Site Manager,+36302222222
+XYZ Residence,Residence Complex,RC001,Fő utca 15.,,Debrecen,Hajdú-Bihar,4026,Hungary,47.5316,21.6273,8000,Concierge,+36303333333
+Industrial Park Ltd,Factory Site,FS001,Ipari park 5.,,Székesfehérvár,Fejér,8000,Hungary,47.1925,18.4108,15000,Factory Security,+36304444444
+Green Valley Homes,Phase 1,GVH-P1,Zöld völgy utca 22.,,Pécs,Baranya,7624,Hungary,46.0727,18.2330,12000,Property Manager,+36305555555
+Tech Solutions Kft,Headquarters,TS-HQ,Technology út 88.,,Szeged,Csongrád-Csanád,6720,Hungary,46.2530,20.1414,2500,Reception,+36306666666

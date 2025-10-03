@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ellenőrzés esedékes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 5px; overflow: hidden; }
+        .header { background-color: #1976d2; color: white; padding: 20px; text-align: center; }
+        .content { padding: 30px; }
+        .gate-info { background-color: #f5f5f5; padding: 15px; border-left: 4px solid #1976d2; margin: 15px 0; }
+        .button { display: inline-block; background-color: #1976d2; color: white; text-decoration: none; padding: 15px 25px; border-radius: 5px; margin: 15px 0; }
+        .footer { background-color: #333333; color: white; padding: 20px; text-align: center; font-size: 12px; }
+        .deadline-urgent { color: #d32f2f; font-weight: bold; }
+        .deadline-normal { color: #f57c00; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GarageReg Értesítő Rendszer</h1>
+            <p>Ellenőrzés esedékes</p>
+        </div>
+        
+        <div class="content">
+            <h2>Kedves {{ user_name }}!</h2>
+            
+            <p>Szeretnénk értesíteni, hogy a következő kapu ellenőrzése esedékes:</p>
+            
+            <div class="gate-info">
+                <strong>Kapu neve:</strong> {{ gate_name }}<br/>
+                <strong>Helyszín:</strong> {{ gate_location }}<br/>
+                <strong>Ellenőrzés típusa:</strong> {{ inspection_type }}<br/>
+                <strong>Esedékesség:</strong> 
+                <span class="{% if days_until_due <= 1 %}deadline-urgent{% else %}deadline-normal{% endif %}">
+                    {{ due_date | deadline }}
+                </span>
+            </div>
+
+            {% if inspector_name %}
+            <p><strong>Felelős ellenőr:</strong> {{ inspector_name }}</p>
+            {% endif %}
+
+            {% if days_until_due <= 0 %}
+            <p style="color: #d32f2f; font-weight: bold;">⚠️ FIGYELEM: Az ellenőrzés időpontja már lejárt!</p>
+            {% elif days_until_due <= 3 %}
+            <p style="color: #f57c00; font-weight: bold;">🔔 SÜRGŐS: Az ellenőrzés {{ days_until_due }} napon belül esedékes!</p>
+            {% endif %}
+
+            <a href="{{ system_url }}/inspections/{{ gate_id }}" class="button">Ellenőrzés megtekintése</a>
+        </div>
+        
+        <div class="footer">
+            {{ organization_name }}<br/>
+            GarageReg Rendszer - {{ current_date | datetime }}<br/>
+            Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.
+        </div>
+    </div>
+</body>
+</html>

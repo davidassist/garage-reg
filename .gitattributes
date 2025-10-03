@@ -1,0 +1,53 @@
+# Handle line endings automatically for files detected as text
+# and leave all files detected as binary untouched.
+* text=auto
+
+# Force the following filetypes to have unix eols, so Windows does not break them
+*.* text eol=lf
+
+# Windows forced line-endings
+*.bat text eol=crlf
+
+# These files are text and should be normalized (Convert crlf => lf)
+*.css           text
+*.df            text
+*.htm           text
+*.html          text
+*.java          text
+*.js            text
+*.json          text
+*.jsx           text
+*.less          text
+*.properties    text
+*.sass          text
+*.scss          text
+*.ts            text
+*.tsx           text
+*.xml           text
+*.yml           text
+*.yaml          text
+
+# These files are binary and should be left untouched
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.mov           binary
+*.mp4           binary
+*.mp3           binary
+*.flv           binary
+*.fla           binary
+*.swf           binary
+*.gz            binary
+*.zip           binary
+*.7z            binary
+*.ttf           binary
+*.eot           binary
+*.woff          binary
+*.pyc           binary
+*.pdf           binary
+*.ez            binary
+*.bz2           binary
+*.swp           binary
+*.sqlite        binary

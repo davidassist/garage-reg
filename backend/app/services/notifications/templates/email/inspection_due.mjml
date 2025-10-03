@@ -1,0 +1,107 @@
+<mjml>
+  <mj-head>
+    <mj-title>Ellenőrzés esedékes - {{ gate_name }}</mj-title>
+    <mj-preview>{{ gate_name }} kapunál ellenőrzés esedékes {{ due_date | datetime }}</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" line-height="1.6" />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .deadline-urgent { color: #d32f2f; font-weight: bold; }
+      .deadline-normal { color: #f57c00; font-weight: bold; }
+      .gate-info { background-color: #f5f5f5; padding: 15px; border-left: 4px solid #1976d2; }
+    </mj-style>
+  </mj-head>
+  
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#1976d2" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="24px" font-weight="bold" align="center">
+          GarageReg Értesítő Rendszer
+        </mj-text>
+        <mj-text color="#ffffff" font-size="16px" align="center">
+          Ellenőrzés esedékes
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="#ffffff" padding="30px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" color="#333333">
+          Kedves {{ user_name }}!
+        </mj-text>
+        
+        <mj-text>
+          Szeretnénk értesíteni, hogy a következő kapu ellenőrzése esedékes:
+        </mj-text>
+
+        <mj-text css-class="gate-info">
+          <strong>Kapu neve:</strong> {{ gate_name }}<br/>
+          <strong>Helyszín:</strong> {{ gate_location }}<br/>
+          <strong>Ellenőrzés típusa:</strong> {{ inspection_type }}<br/>
+          <strong>Esedékesség:</strong> 
+          <span class="{% if days_until_due <= 1 %}deadline-urgent{% else %}deadline-normal{% endif %}">
+            {{ due_date | deadline }}
+          </span>
+        </mj-text>
+
+        {% if inspector_name %}
+        <mj-text>
+          <strong>Felelős ellenőr:</strong> {{ inspector_name }}
+        </mj-text>
+        {% endif %}
+
+        {% if days_until_due <= 0 %}
+        <mj-text color="#d32f2f" font-weight="bold">
+          ⚠️ FIGYELEM: Az ellenőrzés időpontja már lejárt!
+        </mj-text>
+        {% elif days_until_due <= 3 %}
+        <mj-text color="#f57c00" font-weight="bold">
+          🔔 SÜRGŐS: Az ellenőrzés {{ days_until_due }} napon belül esedékes!
+        </mj-text>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+
+    <!-- Action Button -->
+    <mj-section background-color="#ffffff" padding="0 30px 30px">
+      <mj-column>
+        <mj-button 
+          background-color="#1976d2" 
+          color="#ffffff"
+          font-size="16px"
+          padding="15px 25px"
+          border-radius="5px"
+          href="{{ system_url }}/inspections/{{ gate_id }}"
+        >
+          Ellenőrzés megtekintése
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Additional Info -->
+    <mj-section background-color="#f8f9fa" padding="20px">
+      <mj-column>
+        <mj-text font-size="12px" color="#666666">
+          <strong>Emlékeztető:</strong><br/>
+          • Az ellenőrzéseket a biztonsági előírások szerint kell elvégezni<br/>
+          • A dokumentációt a rendszerben kell rögzíteni<br/>
+          • Probléma esetén azonnal értesítse a karbantartási csapatot
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#333333" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="12px" align="center">
+          {{ organization_name }}<br/>
+          GarageReg Rendszer - {{ current_date | datetime }}<br/>
+          Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -1,0 +1,1 @@
+GarageReg: SLA figyelmeztetés! {{ hours_remaining }} óra van hátra. Munkalap: {{ work_order_id }}

@@ -1,0 +1,133 @@
+<mjml>
+  <mj-head>
+    <mj-title>Munkalap elkészült - {{ work_order_title }}</mj-title>
+    <mj-preview>{{ work_order_title }} munkalap sikeresen elkészült {{ completed_by }} által</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" line-height="1.6" />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .success-box { background-color: #e8f5e8; border-left: 4px solid #4caf50; padding: 15px; }
+      .completion-badge { background-color: #4caf50; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; }
+    </mj-style>
+  </mj-head>
+  
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#4caf50" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="24px" font-weight="bold" align="center">
+          ✅ Munkalap Elkészült
+        </mj-text>
+        <mj-text color="#ffffff" font-size="16px" align="center">
+          Sikeres befejezés
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Success Message -->
+    <mj-section background-color="#ffffff" padding="30px">
+      <mj-column>
+        <mj-text align="center" padding="20px">
+          <span class="completion-badge">ELKÉSZÜLT</span>
+        </mj-text>
+        
+        <mj-text font-size="18px" font-weight="bold" color="#333333">
+          Kedves {{ user_name }}!
+        </mj-text>
+        
+        <mj-text>
+          Örömmel értesítjük, hogy a következő munkalap sikeresen elkészült:
+        </mj-text>
+
+        <mj-text css-class="success-box">
+          <strong>Munkalap azonosító:</strong> #{{ work_order_id }}<br/>
+          <strong>Cím:</strong> {{ work_order_title }}<br/>
+          <strong>Ügyfél:</strong> {{ client_name }}<br/>
+          <strong>Elvégző:</strong> {{ completed_by }}<br/>
+          <strong>Befejezés időpontja:</strong> {{ completion_date | datetime }}
+        </mj-text>
+
+        {% if results_summary %}
+        <mj-text>
+          <strong>Elvégzett munkák összefoglalása:</strong>
+        </mj-text>
+        <mj-text style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+          {{ results_summary }}
+        </mj-text>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+
+    <!-- Action Buttons -->
+    <mj-section background-color="#ffffff" padding="0 30px 30px">
+      <mj-column>
+        <mj-button 
+          background-color="#4caf50" 
+          color="#ffffff"
+          font-size="16px"
+          padding="15px 25px"
+          border-radius="5px"
+          href="{{ system_url }}/work-orders/{{ work_order_id }}/report"
+        >
+          Részletes jelentés megtekintése
+        </mj-button>
+        
+        <mj-spacer height="10px" />
+        
+        <mj-button 
+          background-color="#1976d2" 
+          color="#ffffff"
+          font-size="14px"
+          padding="12px 20px"
+          border-radius="5px"
+          href="{{ system_url }}/work-orders/{{ work_order_id }}/feedback"
+        >
+          Visszajelzés küldése
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Next Steps -->
+    <mj-section background-color="#f8f9fa" padding="20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#333333" font-weight="bold">
+          Következő lépések:
+        </mj-text>
+        <mj-text font-size="12px" color="#666666">
+          📋 A munkalap dokumentációja elérhető a rendszerben<br/>
+          📧 Az ügyfél automatikus értesítést kapott<br/>
+          📊 A jelentés feldolgozásra kerül a minőségbiztosítási rendszerben<br/>
+          🔄 Amennyiben szükséges, follow-up munkalap kerül létrehozásra
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Quality Metrics -->
+    {% if quality_metrics %}
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#333333" font-weight="bold">
+          Minőségi mutatók:
+        </mj-text>
+        <mj-text font-size="12px" color="#666666">
+          ⏱️ Elvégzési idő: {{ quality_metrics.completion_time }}<br/>
+          🎯 SLA teljesítés: {{ quality_metrics.sla_compliance }}%<br/>
+          ⭐ Munka minősége: {{ quality_metrics.quality_score }}/10
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    {% endif %}
+
+    <!-- Footer -->
+    <mj-section background-color="#333333" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="12px" align="center">
+          {{ organization_name }}<br/>
+          GarageReg Munkalap Rendszer - {{ current_date | datetime }}<br/>
+          Köszönjük a munkáját! - Automatikus értesítés
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

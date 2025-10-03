@@ -1,0 +1,17 @@
+# =============================================================================
+# GRAFANA DASHBOARD CONFIGURATION
+# Automatically provisions dashboards
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: 'garagereg-dashboards'
+    orgId: 1
+    folder: 'GarageReg'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

@@ -1,0 +1,1 @@
+GarageReg: Munkalap kész! {{ work_order_id }} - {{ gate_name }}. Technikus: {{ technician_name }}

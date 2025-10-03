@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+            @top-right {
+                content: "{{ generation.document_number }}";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Oldal " counter(page) " / " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .company-logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        .qr-code {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .document-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .document-title h1 {
+            margin: 0;
+            font-size: 20pt;
+            color: #0066cc;
+        }
+        
+        .document-title h2 {
+            margin: 5px 0 0 0;
+            font-size: 14pt;
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .info-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            text-align: right;
+        }
+        
+        .section {
+            margin: 25px 0;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background-color: #f1f3f5;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #0066cc;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .footer-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .signature-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        
+        .signature-box {
+            width: 200px;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .compliance-info {
+            background-color: #e8f4fd;
+            padding: 10px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+            font-size: 9pt;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        {% if include_logo %}
+        <div class="logo-section">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" 
+                 alt="Company Logo" class="company-logo">
+        </div>
+        {% endif %}
+        
+        <div class="document-title">
+            <h1>ÜZEMELTETÉSI NAPLÓ</h1>
+            <h2>{{ gate.display_name or gate.name }}</h2>
+        </div>
+        
+        {% if qr_code %}
+        <div class="qr-section">
+            <img src="{{ qr_code.image_path }}" alt="QR Code" class="qr-code">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Gate Information -->
+    <div class="info-section">
+        <div class="info-grid">
+            <div class="left-col">
+                <div class="info-item">
+                    <span class="info-label">Kapu neve:</span>
+                    <span class="info-value">{{ gate.display_name or gate.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Kapu kód:</span>
+                    <span class="info-value">{{ gate.gate_code or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Típus:</span>
+                    <span class="info-value">{{ gate.gate_type or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gyártó:</span>
+                    <span class="info-value">{{ gate.manufacturer or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Modell:</span>
+                    <span class="info-value">{{ gate.model or '-' }}</span>
+                </div>
+            </div>
+            <div class="right-col">
+                <div class="info-item">
+                    <span class="info-label">Sorozatszám:</span>
+                    <span class="info-value">{{ gate.serial_number or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Üzembe helyezés:</span>
+                    <span class="info-value">{{ gate.installation_date.strftime('%Y.%m.%d') if gate.installation_date else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Jelentési időszak:</span>
+                    <span class="info-value">{{ period.from.strftime('%Y.%m.%d') }} - {{ period.to.strftime('%Y.%m.%d') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Napok száma:</span>
+                    <span class="info-value">{{ period.days }} nap</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Dokumentum szám:</span>
+                    <span class="info-value">{{ generation.document_number }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Statistics -->
+    <div class="section">
+        <div class="section-title">Használati statisztikák</div>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-value">{{ usage_statistics.total_operations }}</span>
+                <div class="stat-label">Összes művelet</div>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ usage_statistics.average_daily_operations }}</span>
+                <div class="stat-label">Napi átlag</div>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ usage_statistics.peak_hour }}</span>
+                <div class="stat-label">Csúcsidő</div>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ usage_statistics.peak_operations }}</span>
+                <div class="stat-label">Csúcs műveletek</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operations Log -->
+    <div class="section">
+        <div class="section-title">Művelet napló</div>
+        {% if operations %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Dátum/Idő</th>
+                    <th>Művelet</th>
+                    <th>Időtartam (s)</th>
+                    <th>Státusz</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for operation in operations %}
+                <tr>
+                    <td>{{ operation.timestamp.strftime('%Y.%m.%d %H:%M:%S') }}</td>
+                    <td>{{ operation.operation }}</td>
+                    <td>{{ operation.duration_seconds }}</td>
+                    <td>{{ operation.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">Nincs rögzített művelet a megadott időszakban.</div>
+        {% endif %}
+    </div>
+
+    <!-- Incidents -->
+    <div class="section">
+        <div class="section-title">Incidensek és hibák</div>
+        {% if incidents %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Dátum</th>
+                    <th>Típus</th>
+                    <th>Leírás</th>
+                    <th>Státusz</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in incidents %}
+                <tr>
+                    <td>{{ incident.date.strftime('%Y.%m.%d') }}</td>
+                    <td>{{ incident.type }}</td>
+                    <td>{{ incident.description }}</td>
+                    <td>{{ incident.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">Nem történt incidens a megadott időszakban.</div>
+        {% endif %}
+    </div>
+
+    <!-- Maintenance Summary -->
+    <div class="section">
+        <div class="section-title">Karbantartási összefoglaló</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Tervezett karbantartás:</span>
+                <span class="info-value">{{ maintenance_summary.scheduled_maintenance }} alkalom</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Sürgős javítás:</span>
+                <span class="info-value">{{ maintenance_summary.emergency_repairs }} alkalom</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Össz. leállás:</span>
+                <span class="info-value">{{ maintenance_summary.total_downtime_hours }} óra</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Information -->
+    <div class="compliance-info">
+        <strong>Megfelelőségi információk:</strong><br>
+        Ez a dokumentum az EN 13241-1 (Kaputörvény), EN 12453 (Biztonsági eszközök) és EN 12604 (Telepítési előírások) 
+        európai szabványok szerint készült. A dokumentum digitálisan generált és hitelesített.
+    </div>
+
+    <!-- Signatures -->
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">Üzemeltető aláírása</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Ellenőr aláírása</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-section">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                Generálva: {{ generation.date.strftime('%Y.%m.%d %H:%M:%S') }}
+            </div>
+            <div>
+                Dokumentum ID: {{ generation.document_number }}
+            </div>
+            <div>
+                Ellenőrzési URL: {{ qr_code.url if qr_code else '' }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

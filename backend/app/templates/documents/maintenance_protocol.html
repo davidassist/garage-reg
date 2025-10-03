@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+            @top-right {
+                content: "{{ generation.document_number }}";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Oldal " counter(page) " / " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #dc3545;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .company-logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        .qr-code {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .document-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .document-title h1 {
+            margin: 0;
+            font-size: 20pt;
+            color: #dc3545;
+        }
+        
+        .document-title h2 {
+            margin: 5px 0 0 0;
+            font-size: 14pt;
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .info-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            text-align: right;
+        }
+        
+        .section {
+            margin: 25px 0;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #dc3545;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .work-description {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background-color: #f1f3f5;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-in-progress {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-draft {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .cost-summary {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .cost-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            text-align: center;
+        }
+        
+        .cost-item {
+            padding: 10px;
+        }
+        
+        .cost-value {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #28a745;
+            display: block;
+        }
+        
+        .cost-label {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .quality-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .quality-check {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .quality-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        
+        .quality-pass {
+            background-color: #28a745;
+        }
+        
+        .quality-fail {
+            background-color: #dc3545;
+        }
+        
+        .signature-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        
+        .signature-box {
+            width: 200px;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .compliance-info {
+            background-color: #ffeaa7;
+            padding: 10px;
+            border-left: 4px solid #fdcb6e;
+            margin: 20px 0;
+            font-size: 9pt;
+        }
+        
+        .footer-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        {% if include_logo %}
+        <div class="logo-section">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" 
+                 alt="Company Logo" class="company-logo">
+        </div>
+        {% endif %}
+        
+        <div class="document-title">
+            <h1>KARBANTARTÁSI JEGYZŐKÖNYV</h1>
+            <h2>{{ work_order.work_order_number }}</h2>
+        </div>
+        
+        {% if qr_code %}
+        <div class="qr-section">
+            <img src="{{ qr_code.image_path }}" alt="QR Code" class="qr-code">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Work Order Information -->
+    <div class="info-section">
+        <div class="info-grid">
+            <div class="left-col">
+                <div class="info-item">
+                    <span class="info-label">Munkarendelés szám:</span>
+                    <span class="info-value">{{ work_order.work_order_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Típus:</span>
+                    <span class="info-value">{{ work_order.work_type or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Kategória:</span>
+                    <span class="info-value">{{ work_order.work_category or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Prioritás:</span>
+                    <span class="info-value">{{ work_order.priority or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Státusz:</span>
+                    <span class="info-value">
+                        <span class="status-badge status-{{ work_order.status }}">
+                            {{ work_order.status }}
+                        </span>
+                    </span>
+                </div>
+            </div>
+            <div class="right-col">
+                <div class="info-item">
+                    <span class="info-label">Tervezett kezdés:</span>
+                    <span class="info-value">{{ work_order.scheduled_start.strftime('%Y.%m.%d %H:%M') if work_order.scheduled_start else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Tényleges kezdés:</span>
+                    <span class="info-value">{{ work_order.actual_start.strftime('%Y.%m.%d %H:%M') if work_order.actual_start else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Befejezés:</span>
+                    <span class="info-value">{{ work_order.actual_end.strftime('%Y.%m.%d %H:%M') if work_order.actual_end else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Időtartam:</span>
+                    <span class="info-value">{{ work_order.actual_duration_hours or '-' }} óra</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Készültség:</span>
+                    <span class="info-value">{{ work_order.progress_percentage or 0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gate Information -->
+    {% if gate %}
+    <div class="section">
+        <div class="section-title">Kapu információk</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Kapu neve:</span>
+                <span class="info-value">{{ gate.display_name or gate.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Gyártó/Modell:</span>
+                <span class="info-value">{{ gate.manufacturer or '-' }} / {{ gate.model or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Sorozatszám:</span>
+                <span class="info-value">{{ gate.serial_number or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Telepítés dátuma:</span>
+                <span class="info-value">{{ gate.installation_date.strftime('%Y.%m.%d') if gate.installation_date else '-' }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Work Description -->
+    <div class="section">
+        <div class="section-title">Munka leírása</div>
+        <div class="work-description">
+            <h4>{{ work_order.title }}</h4>
+            <p>{{ work_order.description }}</p>
+        </div>
+        
+        {% if work_order.work_performed %}
+        <div>
+            <strong>Elvégzett munkálatok:</strong><br>
+            {{ work_order.work_performed }}
+        </div>
+        {% endif %}
+        
+        {% if work_order.issues_encountered %}
+        <div style="margin-top: 15px;">
+            <strong>Felmerült problémák:</strong><br>
+            {{ work_order.issues_encountered }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Parts Used -->
+    {% if parts_used %}
+    <div class="section">
+        <div class="section-title">Felhasznált alkatrészek</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Alkatrész</th>
+                    <th>Mennyiség</th>
+                    <th>Egységár</th>
+                    <th>Összeg</th>
+                    <th>Beépítés helye</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for part in parts_used %}
+                <tr>
+                    <td>{{ part.part_name }}</td>
+                    <td>{{ part.quantity_used }}</td>
+                    <td>{{ part.unit_cost }} Ft</td>
+                    <td>{{ part.total_cost }} Ft</td>
+                    <td>{{ part.installation_location or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Time Logs -->
+    {% if time_logs %}
+    <div class="section">
+        <div class="section-title">Munkaidő nyilvántartás</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Technikus</th>
+                    <th>Kezdés</th>
+                    <th>Befejezés</th>
+                    <th>Időtartam</th>
+                    <th>Tevékenység</th>
+                    <th>Órabér</th>
+                    <th>Költség</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in time_logs %}
+                <tr>
+                    <td>{{ log.technician_name }}</td>
+                    <td>{{ log.start_time.strftime('%H:%M') if log.start_time else '-' }}</td>
+                    <td>{{ log.end_time.strftime('%H:%M') if log.end_time else '-' }}</td>
+                    <td>{{ log.duration_minutes }} perc</td>
+                    <td>{{ log.activity_type }}</td>
+                    <td>{{ log.hourly_rate }} Ft/óra</td>
+                    <td>{{ log.cost }} Ft</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Cost Summary -->
+    <div class="cost-summary">
+        <div class="section-title">Költség összesítő</div>
+        <div class="cost-grid">
+            <div class="cost-item">
+                <span class="cost-value">{{ costs.labor_cost }}</span>
+                <div class="cost-label">Munkadíj (Ft)</div>
+            </div>
+            <div class="cost-item">
+                <span class="cost-value">{{ costs.parts_cost }}</span>
+                <div class="cost-label">Alkatrész (Ft)</div>
+            </div>
+            <div class="cost-item">
+                <span class="cost-value">{{ costs.total_cost }}</span>
+                <div class="cost-label">Összesen (Ft)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quality Control -->
+    <div class="quality-section">
+        <div class="section-title">Minőség-ellenőrzés</div>
+        <div class="quality-check">
+            <span class="quality-icon {{ 'quality-pass' if work_order.quality_check_passed else 'quality-fail' }}"></span>
+            <strong>Minőség-ellenőrzés: {{ 'MEGFELELŐ' if work_order.quality_check_passed else 'NEM MEGFELELŐ' }}</strong>
+        </div>
+        {% if work_order.quality_notes %}
+        <div style="margin-top: 10px;">
+            <strong>Megjegyzések:</strong><br>
+            {{ work_order.quality_notes }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Technician Information -->
+    {% if technician %}
+    <div class="section">
+        <div class="section-title">Technikus adatok</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Név:</span>
+                <span class="info-value">{{ technician.display_name or (technician.first_name + ' ' + technician.last_name) }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Beosztás:</span>
+                <span class="info-value">{{ technician.job_title or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Szervezeti egység:</span>
+                <span class="info-value">{{ technician.department or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">E-mail:</span>
+                <span class="info-value">{{ technician.email or '-' }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Compliance Information -->
+    <div class="compliance-info">
+        <strong>Szabványossági információk:</strong><br>
+        A karbantartási munkálatok az alábbi szabványoknak megfelelően lettek elvégezve:<br>
+        {% for standard in compliance.standards %}
+        • {{ standard }}<br>
+        {% endfor %}
+        {% if compliance.safety_requirements %}
+        <br><strong>Biztonsági előírások:</strong> {{ compliance.safety_requirements }}
+        {% endif %}
+    </div>
+
+    <!-- Signatures -->
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">Technikus aláírása</div>
+            <div style="margin-top: 5px; font-size: 9pt;">
+                {{ technician.display_name if technician else '' }}
+            </div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Ellenőr aláírása</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Ügyfél aláírása</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-section">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                Generálva: {{ generation.date.strftime('%Y.%m.%d %H:%M:%S') }}
+            </div>
+            <div>
+                Dokumentum ID: {{ generation.document_number }}
+            </div>
+            <div>
+                Ellenőrzési URL: {{ qr_code.url if qr_code else '' }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

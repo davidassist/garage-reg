@@ -1,0 +1,12 @@
+client_name,site_name,building_name,gate_name,gate_code,gate_type,manufacturer,model,serial_number,installation_date,installer,width_cm,height_cm,weight_kg,material,max_cycles_per_day,current_cycle_count,status
+ABC Company,Main Site,Building A,Gate 1,G-A1,sliding,Came,BXV-4,SN123456,2024-01-15,Gate Service Ltd,400,200,150,Aluminum,200,1250,operational
+ABC Company,Main Site,Building A,Gate 2,G-A2,swing,Nice,ROBO500,SN789012,2024-01-20,Gate Service Ltd,300,200,80,Steel,100,850,operational
+ABC Company,Main Site,Building B,Main Entrance,G-B1,turnstile,Kaba,R550,SN345678,2024-02-01,Security Systems Inc,120,200,75,Stainless Steel,500,12500,operational
+ABC Company,Secondary Site,Warehouse 1,Loading Bay Gate,G-WH1,barrier,Faac,620 SR,SN901234,2024-02-15,Industrial Gates Co,600,300,200,Steel,50,1200,operational
+XYZ Residence,Residence Complex,Building 1,Entrance Gate,G-R1-E,sliding,Ditec,CROSS15,SN567890,2024-03-01,Residential Gates Ltd,450,220,180,Aluminum,150,2100,operational
+XYZ Residence,Residence Complex,Building 1,Parking Gate,G-R1-P,swing,BFT,PHOBOS BT A25,SN111222,2024-03-15,Residential Gates Ltd,350,200,95,Steel,80,950,maintenance
+XYZ Residence,Residence Complex,Community Center,Main Gate,G-CC-M,sliding,Came,BK-2200,SN333444,2024-04-01,Community Services,500,250,220,Aluminum,100,850,operational
+Industrial Park Ltd,Factory Site,Production Hall,Main Gate,G-P1-M,sliding,Hormann,V4015,SN555666,2024-04-15,Industrial Automation,800,400,350,Steel,75,2850,operational
+Industrial Park Ltd,Factory Site,Office Building,Employee Entrance,G-O1-E,turnstile,Automatic Systems,GS200,SN777888,2024-05-01,Security Integration,100,200,60,Stainless Steel,300,8750,operational
+Green Valley Homes,Phase 1,Villa 1,Driveway Gate,G-V1-D,swing,Somfy,Freevia 600,SN999000,2024-05-15,Villa Gates Pro,400,180,120,Wrought Iron,25,320,operational
+Tech Solutions Kft,Headquarters,Main Building,Reception Gate,G-M1-R,barrier,Came,GARD 2500,SN121314,2024-06-01,Tech Security,300,200,85,Aluminum,200,4200,operational

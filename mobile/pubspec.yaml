@@ -1,0 +1,128 @@
+name: garagereg
+description: "GarageReg Mobile - Garage Gate Management System"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI & Navigation
+  cupertino_icons: ^1.0.6
+  go_router: ^12.1.3
+  flutter_animate: ^4.2.0+1
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.0
+
+  # State Management
+  flutter_bloc: ^8.1.3
+  bloc: ^8.1.2
+  equatable: ^2.0.5
+
+  # HTTP & Networking
+  dio: ^5.3.3
+  retrofit: ^4.0.3
+  json_annotation: ^4.8.1
+  connectivity_plus: ^5.0.2
+
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
+
+  # Authentication & Security
+  local_auth: ^2.1.7
+  crypto: ^3.0.3
+  jwt_decoder: ^2.0.1
+
+  # Push Notifications
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^16.3.2
+
+  # Permissions
+  permission_handler: ^11.2.0
+
+  # Utils
+  intl: ^0.19.0
+  logger: ^2.0.2+1
+  package_info_plus: ^4.2.0
+  device_info_plus: ^9.1.1
+  url_launcher: ^6.2.2
+  share_plus: ^7.2.1
+
+  # Maps (optional)
+  google_maps_flutter: ^2.5.3
+  geolocator: ^10.1.0
+
+  # Image handling
+  image_picker: ^1.0.5
+  image_cropper: ^5.0.1
+
+  # QR Code
+  qr_code: ^3.2.2
+  mobile_scanner: ^3.5.6
+
+  # Dependency injection
+  get_it: ^7.6.4
+
+  # Environment
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  # Code generation
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+  retrofit_generator: ^7.0.8
+  hive_generator: ^2.0.1
+
+  # Linting & Analysis
+  flutter_lints: ^3.0.1
+  very_good_analysis: ^5.1.0
+
+  # Testing
+  bloc_test: ^9.1.5
+  mocktail: ^1.0.2
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/translations/
+    - .env
+
+  # Fonts
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+
+# Flutter Intl configuration
+flutter_intl:
+  enabled: true
+  class_name: S
+  main_locale: en
+  arb_dir: lib/l10n
+  output_dir: lib/generated

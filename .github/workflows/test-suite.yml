@@ -1,0 +1,448 @@
+name: 🧪 Automated Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "18"
+  POSTGRES_VERSION: "15"
+
+jobs:
+  # ========================================
+  # Backend Unit & Integration Tests
+  # ========================================
+  backend-tests:
+    name: 🐍 Backend Tests & Coverage
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: garagereg
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: garagereg_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: 📦 Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov pytest-asyncio pytest-mock pytest-xdist
+
+    - name: 🔧 Configure test environment
+      working-directory: ./backend
+      run: |
+        echo "DATABASE_URL=postgresql://garagereg:test_password@localhost:5432/garagereg_test" >> .env.test
+        echo "REDIS_URL=redis://localhost:6379" >> .env.test
+        echo "TESTING=true" >> .env.test
+        echo "SECRET_KEY=test-secret-key-for-ci-only" >> .env.test
+
+    - name: 🔍 Run linting
+      working-directory: ./backend
+      run: |
+        # Install linting tools
+        pip install flake8 black isort mypy
+        
+        # Run code formatters and linters
+        black --check --diff app/ tests/
+        isort --check-only --diff app/ tests/
+        flake8 app/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        mypy app/ --ignore-missing-imports
+
+    - name: 🧪 Run unit tests
+      working-directory: ./backend
+      run: |
+        pytest tests/unit/ \
+          -v \
+          --cov=app \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --cov-fail-under=90 \
+          --junit-xml=test-results/unit-results.xml \
+          --maxfail=5
+
+    - name: 🔗 Run integration tests
+      working-directory: ./backend
+      run: |
+        pytest tests/integration/ \
+          -v \
+          --cov=app \
+          --cov-append \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --junit-xml=test-results/integration-results.xml \
+          --maxfail=5
+
+    - name: 🌐 Run API tests
+      working-directory: ./backend
+      run: |
+        pytest tests/api/ \
+          -v \
+          --cov=app \
+          --cov-append \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --junit-xml=test-results/api-results.xml \
+          --maxfail=5
+
+    - name: 💨 Run smoke tests
+      working-directory: ./backend
+      run: |
+        pytest -m smoke \
+          --tb=short \
+          --maxfail=1 \
+          --junit-xml=test-results/smoke-results.xml
+
+    - name: 📊 Generate coverage report
+      working-directory: ./backend
+      run: |
+        # Generate final coverage report
+        coverage combine
+        coverage report --show-missing --fail-under=90
+        coverage html --title="GarageReg Backend Coverage Report"
+        coverage xml
+
+    - name: 📈 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage.xml
+        name: backend-coverage
+        fail_ci_if_error: true
+
+    - name: 📤 Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: backend-test-results
+        path: |
+          backend/test-results/
+          backend/htmlcov/
+          backend/coverage.xml
+
+    - name: 📝 Publish test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Backend Tests
+        path: 'backend/test-results/*.xml'
+        reporter: java-junit
+
+  # ========================================
+  # Frontend E2E Tests with Playwright
+  # ========================================
+  frontend-e2e:
+    name: 🎭 Frontend E2E Tests
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: web-admin-new/package-lock.json
+
+    - name: 📦 Install dependencies
+      working-directory: ./web-admin-new
+      run: |
+        npm ci
+        npx playwright install --with-deps
+
+    - name: 🐍 Set up Python for backend
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 🚀 Start backend server
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+        # Set up test database
+        echo "DATABASE_URL=sqlite:///./test_e2e.db" > .env
+        echo "SECRET_KEY=test-secret-for-e2e" >> .env
+        echo "TESTING=true" >> .env
+        
+        # Start backend in background
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+      
+    - name: 🌐 Start frontend server
+      working-directory: ./web-admin-new
+      run: |
+        # Set backend URL
+        echo "VITE_API_URL=http://localhost:8000" > .env.local
+        
+        # Build and start frontend
+        npm run build
+        npm run preview --port 3000 &
+        sleep 10
+
+    - name: 🧪 Run Playwright tests
+      working-directory: ./web-admin-new
+      run: |
+        npx playwright test \
+          --reporter=html,junit,json \
+          --output-dir=test-results
+
+    - name: 📤 Upload Playwright results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-results
+        path: |
+          web-admin-new/test-results/
+          web-admin-new/playwright-report/
+
+    - name: 📝 Publish E2E test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: E2E Tests
+        path: 'web-admin-new/test-results/junit.xml'
+        reporter: java-junit
+
+  # ========================================
+  # Security Scanning
+  # ========================================
+  security-scan:
+    name: 🔐 Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 🔍 Run safety check (Python dependencies)
+      working-directory: ./backend
+      run: |
+        pip install safety
+        safety check --json --output security-report.json || true
+
+    - name: 🔍 Run bandit security scan
+      working-directory: ./backend
+      run: |
+        pip install bandit
+        bandit -r app/ -f json -o bandit-report.json || true
+
+    - name: 🔍 Run semgrep scan
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: auto
+        generateSarif: "1"
+
+    - name: 📤 Upload security scan results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-scan-results
+        path: |
+          backend/security-report.json
+          backend/bandit-report.json
+
+  # ========================================
+  # Performance Testing
+  # ========================================
+  performance-test:
+    name: 📈 Performance Testing
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install backend dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install locust
+
+    - name: 🚀 Start backend server
+      working-directory: ./backend
+      run: |
+        echo "DATABASE_URL=sqlite:///./test_perf.db" > .env
+        echo "SECRET_KEY=test-secret-for-perf" >> .env
+        
+        # Start server in background
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+
+    - name: 📊 Run performance tests
+      working-directory: ./backend
+      run: |
+        # Create basic load test
+        cat > locustfile.py << 'EOF'
+        from locust import HttpUser, task, between
+        
+        class GarageRegUser(HttpUser):
+            wait_time = between(1, 3)
+            
+            def on_start(self):
+                # Login to get auth token
+                response = self.client.post("/api/v1/auth/login", data={
+                    "username": "testuser", 
+                    "password": "testpass"
+                })
+                if response.status_code == 200:
+                    self.token = response.json().get("access_token")
+                    self.headers = {"Authorization": f"Bearer {self.token}"}
+                else:
+                    self.headers = {}
+            
+            @task(3)
+            def get_dashboard(self):
+                self.client.get("/api/v1/dashboard", headers=self.headers)
+            
+            @task(2)  
+            def get_organizations(self):
+                self.client.get("/api/v1/organizations", headers=self.headers)
+            
+            @task(1)
+            def get_users(self):
+                self.client.get("/api/v1/users", headers=self.headers)
+        EOF
+        
+        # Run load test
+        locust -f locustfile.py --host=http://localhost:8000 \
+               --users=10 --spawn-rate=2 --run-time=60s --html=perf-report.html
+
+    - name: 📤 Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results
+        path: backend/perf-report.html
+
+  # ========================================
+  # Test Summary & Coverage Gates
+  # ========================================
+  test-summary:
+    name: 📋 Test Summary & Gates
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-e2e, security-scan]
+    if: always()
+    
+    steps:
+    - name: 📥 Download all artifacts
+      uses: actions/download-artifact@v4
+    
+    - name: 📊 Generate test summary
+      run: |
+        echo "# 🧪 Test Suite Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Backend coverage
+        if [ -f backend-test-results/coverage.xml ]; then
+          COVERAGE=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('backend-test-results/coverage.xml')
+          root = tree.getroot()
+          coverage = root.attrib.get('line-rate', '0')
+          print(f'{float(coverage)*100:.1f}%')
+          ")
+          echo "## 📊 Backend Coverage: $COVERAGE" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## ✅ Test Status" >> $GITHUB_STEP_SUMMARY
+        echo "- Backend Unit Tests: ${{ needs.backend-tests.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Frontend E2E Tests: ${{ needs.frontend-e2e.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Security Scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
+
+    - name: 🚦 Check coverage gates
+      run: |
+        # Fail if critical tests failed
+        if [ "${{ needs.backend-tests.result }}" != "success" ]; then
+          echo "❌ Backend tests failed - blocking merge"
+          exit 1
+        fi
+        
+        if [ "${{ needs.frontend-e2e.result }}" != "success" ]; then
+          echo "❌ E2E tests failed - blocking merge"  
+          exit 1
+        fi
+        
+        echo "✅ All test gates passed!"
+
+    - name: 💬 Comment PR with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo, number } = context.issue;
+          
+          const comment = `
+          ## 🧪 Automated Test Results
+          
+          | Test Suite | Status | 
+          |------------|--------|
+          | Backend Unit & Integration | ${{ needs.backend-tests.result == 'success' && '✅' || '❌' }} ${{ needs.backend-tests.result }} |
+          | Frontend E2E (Playwright) | ${{ needs.frontend-e2e.result == 'success' && '✅' || '❌' }} ${{ needs.frontend-e2e.result }} |
+          | Security Scan | ${{ needs.security-scan.result == 'success' && '✅' || '❌' }} ${{ needs.security-scan.result }} |
+          
+          ### 📊 Coverage Report
+          - Backend coverage reports available in artifacts
+          - E2E test reports available in artifacts
+          
+          **Status**: ${{ needs.backend-tests.result == 'success' && needs.frontend-e2e.result == 'success' && '🟢 All tests passing' || '🔴 Some tests failed' }}
+          `;
+          
+          github.rest.issues.createComment({
+            owner,
+            repo,  
+            issue_number: number,
+            body: comment
+          });

@@ -1,0 +1,235 @@
+# =============================================================================
+# TRAEFIK DYNAMIC CONFIGURATION
+# TLS Certificates, Middlewares, and Advanced Routing
+# =============================================================================
+
+# =============================================================================
+# TLS CONFIGURATION
+# =============================================================================
+tls:
+  options:
+    default:
+      sslProtocols:
+        - "TLSv1.2"
+        - "TLSv1.3"
+      minVersion: "VersionTLS12"
+      cipherSuites:
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
+      curvePreferences:
+        - "CurveP521"
+        - "CurveP384"
+      sniStrict: false
+
+  # Self-signed certificates for local development
+  certificates:
+    - certFile: "/etc/ssl/certs/garagereg.local.crt"
+      keyFile: "/etc/ssl/certs/garagereg.local.key"
+      stores:
+        - default
+    - certFile: "/etc/ssl/certs/wildcard.garagereg.local.crt"
+      keyFile: "/etc/ssl/certs/wildcard.garagereg.local.key"
+      stores:
+        - default
+
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/etc/ssl/certs/garagereg.local.crt"
+        keyFile: "/etc/ssl/certs/garagereg.local.key"
+
+# =============================================================================
+# HTTP CONFIGURATION
+# =============================================================================
+http:
+  # =============================================================================
+  # MIDDLEWARES
+  # =============================================================================
+  middlewares:
+    # Security Headers
+    security-headers:
+      headers:
+        frameDeny: true
+        sslRedirect: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Frame-Options: "DENY"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Content-Security-Policy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.garagereg.local; frame-ancestors 'none';"
+
+    # CORS Middleware
+    cors-headers:
+      headers:
+        accessControlAllowCredentials: true
+        accessControlAllowHeaders:
+          - "Authorization"
+          - "Content-Type" 
+          - "X-Requested-With"
+          - "Accept"
+          - "Origin"
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+          - "PATCH"
+        accessControlAllowOriginList:
+          - "https://app.garagereg.local"
+          - "https://admin.garagereg.local"
+          - "https://dashboard.garagereg.local"
+        accessControlMaxAge: 86400
+
+    # Rate Limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+
+    # API Rate Limiting (stricter)
+    api-rate-limit:
+      rateLimit:
+        average: 200
+        burst: 100
+        period: 1m
+
+    # Authentication Rate Limiting (very strict)
+    auth-rate-limit:
+      rateLimit:
+        average: 10
+        burst: 5
+        period: 1m
+
+    # Compression
+    compression:
+      compress: {}
+
+    # IP Whitelist for monitoring endpoints
+    monitoring-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "172.20.0.0/16"
+          - "10.0.0.0/8"
+          - "192.168.0.0/16"
+
+    # Redirect to HTTPS
+    https-redirect:
+      redirectScheme:
+        scheme: "https"
+        permanent: true
+
+    # Custom error pages
+    error-pages:
+      errors:
+        status:
+          - "400-599"
+        service: "error-pages"
+        query: "/{status}.html"
+
+  # =============================================================================
+  # SERVICES  
+  # =============================================================================
+  services:
+    # Error pages service (optional)
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: "http://error-pages:8080"
+
+  # =============================================================================
+  # ROUTERS
+  # =============================================================================
+  routers:
+    # Main application redirect
+    app-redirect:
+      rule: "Host(`garagereg.local`)"
+      entryPoints:
+        - "websecure"
+      service: "noop@internal"
+      middlewares:
+        - "security-headers"
+      tls: {}
+      priority: 1000
+
+    # API routes with enhanced middleware
+    api-enhanced:
+      rule: "Host(`api.garagereg.local`) && PathPrefix(`/api/auth`)"
+      entryPoints:
+        - "websecure"
+      service: "backend-api@docker"
+      middlewares:
+        - "security-headers"
+        - "cors-headers" 
+        - "auth-rate-limit"
+        - "compression"
+      tls: {}
+      priority: 2000
+
+    api-general:
+      rule: "Host(`api.garagereg.local`) && PathPrefix(`/api`)"
+      entryPoints:
+        - "websecure"
+      service: "backend-api@docker"
+      middlewares:
+        - "security-headers"
+        - "cors-headers"
+        - "api-rate-limit"
+        - "compression"
+      tls: {}
+      priority: 1500
+
+    # Admin interface with security
+    admin-secure:
+      rule: "Host(`admin.garagereg.local`)"
+      entryPoints:
+        - "websecure"
+      service: "web-admin@docker"
+      middlewares:
+        - "security-headers"
+        - "rate-limit"
+        - "compression"
+      tls: {}
+
+    # Monitoring endpoints (restricted)
+    monitoring-secure:
+      rule: "Host(`metrics.garagereg.local`) || Host(`dashboard.garagereg.local`)"
+      entryPoints:
+        - "websecure"
+      middlewares:
+        - "security-headers"
+        - "monitoring-whitelist"
+      tls: {}
+
+# =============================================================================
+# TCP CONFIGURATION
+# =============================================================================
+tcp:
+  routers:
+    # PostgreSQL access (for development)
+    postgres-tcp:
+      rule: "HostSNI(`*`)"
+      entryPoints:
+        - "postgres"
+      service: "postgres-tcp"
+      tls:
+        passthrough: false
+
+  services:
+    postgres-tcp:
+      loadBalancer:
+        servers:
+          - address: "postgres:5432"

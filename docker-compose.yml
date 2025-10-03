@@ -1,0 +1,254 @@
+services:
+  # =============================================================================
+  # REVERSE PROXY
+  # =============================================================================
+  traefik:
+    image: traefik:v3.0
+    container_name: garagereg_traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - garagereg-network
+    labels:
+      - "traefik.enable=true"
+
+  # =============================================================================
+  # DATABASE
+  # =============================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: garagereg_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-garagereg}
+      POSTGRES_USER: ${DB_USER:-garagereg}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-garagereg_dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - garagereg-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-garagereg} -d ${DB_NAME:-garagereg}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # =============================================================================
+  # REDIS
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: garagereg_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+      - ./infra/redis/redis.conf:/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    networks:
+      - garagereg-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Commander (Web UI for Redis)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: garagereg_redis_commander
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - garagereg-network
+    depends_on:
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redis-commander.rule=Host(`redis.localhost`)"
+      - "traefik.http.services.redis-commander.loadbalancer.server.port=8081"
+
+  # =============================================================================
+  # OBJECT STORAGE (MinIO)
+  # =============================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: garagereg_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - garagereg-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio-api.rule=Host(`minio-api.localhost`)"
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio-console.rule=Host(`minio.localhost`)"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+
+  # Create MinIO bucket
+  minio-create-bucket:
+    image: minio/mc:latest
+    container_name: garagereg_minio_create_bucket
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-garagereg}
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      /usr/bin/mc config host add myminio http://minio:9000 $$MINIO_ACCESS_KEY $$MINIO_SECRET_KEY;
+      /usr/bin/mc mb myminio/$$MINIO_BUCKET --ignore-existing;
+      /usr/bin/mc anonymous set public myminio/$$MINIO_BUCKET;
+      exit 0;
+      "
+    depends_on:
+      - minio
+    networks:
+      - garagereg-network
+
+  # =============================================================================
+  # EMAIL (Development)
+  # =============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: garagereg_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - garagereg-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailhog.rule=Host(`mail.localhost`)"
+      - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
+
+  # =============================================================================
+  # BACKEND API (Temporarily disabled - requires Docker Desktop running)
+  # =============================================================================
+  # api:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #     target: development
+  #   container_name: garagereg_api
+  #   restart: unless-stopped
+  #   environment:
+  #     - APP_ENV=${APP_ENV:-development}
+  #     - DATABASE_URL=${DATABASE_URL:-postgresql://garagereg:garagereg_dev_password@db:5432/garagereg}
+  #     - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - garagereg-network
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+
+  # =============================================================================
+  # BACKGROUND WORKER (Temporarily disabled)
+  # =============================================================================
+  # worker:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #     target: development
+  #   container_name: garagereg_worker
+  #   restart: unless-stopped
+  #   command: celery -A app.worker worker --loglevel=info --concurrency=4
+  #   networks:
+  #     - garagereg-network
+  #   depends_on:
+  #     - db
+  #     - redis
+
+  # Celery Flower (Worker monitoring) - Temporarily disabled
+  # flower:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #     target: development
+  #   container_name: garagereg_flower
+  #   restart: unless-stopped
+  #   command: celery -A app.worker flower --port=5555
+  #   environment:
+  #     - CELERY_BROKER_URL=${REDIS_URL:-redis://redis:6379/0}
+  #     - CELERY_RESULT_BACKEND=${REDIS_URL:-redis://redis:6379/0}
+  #   ports:
+  #     - "5555:5555"
+  #   networks:
+  #     - garagereg-network
+  #   depends_on:
+  #     - redis
+
+  # =============================================================================
+  # WEB ADMIN PANEL (Temporarily disabled)
+  # =============================================================================
+  # web-admin:
+  #   build:
+  #     context: ./web-admin
+  #     dockerfile: Dockerfile
+  #     target: development
+  #   container_name: garagereg_web_admin
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - garagereg-network
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  garagereg-network:
+    driver: bridge
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local

@@ -1,0 +1,129 @@
+<mjml>
+  <mj-head>
+    <mj-title>SLA lejárat közelít - {{ work_order_title }}</mj-title>
+    <mj-preview>{{ work_order_title }} munkalap SLA határideje {{ hours_remaining }} óra múlva lejár</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+      <mj-text font-size="14px" line-height="1.6" />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .priority-urgent { background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; }
+      .priority-high { background-color: #fff3e0; border-left: 4px solid #f57c00; padding: 15px; }
+      .sla-warning { background-color: #d32f2f; color: white; padding: 10px; border-radius: 5px; }
+    </mj-style>
+  </mj-head>
+  
+  <mj-body background-color="#f4f4f4">
+    <!-- Header -->
+    <mj-section background-color="#d32f2f" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="24px" font-weight="bold" align="center">
+          🚨 SLA Figyelmeztetés
+        </mj-text>
+        <mj-text color="#ffffff" font-size="16px" align="center">
+          Határidő közelít
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="#ffffff" padding="30px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" color="#333333">
+          Kedves {{ user_name }}!
+        </mj-text>
+        
+        <mj-text css-class="sla-warning" align="center">
+          FIGYELEM: SLA határidő közelít!
+        </mj-text>
+
+        <mj-text css-class="{% if priority == 'urgent' %}priority-urgent{% else %}priority-high{% endif %}">
+          <strong>Munkalap azonosító:</strong> #{{ work_order_id }}<br/>
+          <strong>Cím:</strong> {{ work_order_title }}<br/>
+          <strong>Ügyfél:</strong> {{ client_name }}<br/>
+          <strong>Prioritás:</strong> 
+          {% if priority == 'urgent' %}🔴 SÜRGŐS{% elif priority == 'high' %}🟡 MAGAS{% else %}🟢 NORMÁL{% endif %}<br/>
+          <strong>SLA határidő:</strong> {{ sla_deadline | datetime }}<br/>
+          <strong>Hátralévő idő:</strong> 
+          <span style="color: {% if hours_remaining <= 2 %}#d32f2f{% elif hours_remaining <= 24 %}#f57c00{% else %}#388e3c{% endif %}; font-weight: bold;">
+            {{ hours_remaining }} óra
+          </span>
+        </mj-text>
+
+        {% if hours_remaining <= 2 %}
+        <mj-text color="#d32f2f" font-weight="bold" font-size="16px">
+          ⚠️ KRITIKUS: A határidő 2 órán belül lejár!
+        </mj-text>
+        {% elif hours_remaining <= 4 %}
+        <mj-text color="#f57c00" font-weight="bold">
+          🔔 SÜRGŐS: A határidő 4 órán belül lejár!
+        </mj-text>
+        {% endif %}
+      </mj-column>
+    </mj-section>
+
+    <!-- Action Buttons -->
+    <mj-section background-color="#ffffff" padding="0 30px 30px">
+      <mj-column>
+        <mj-button 
+          background-color="#d32f2f" 
+          color="#ffffff"
+          font-size="16px"
+          padding="15px 25px"
+          border-radius="5px"
+          href="{{ system_url }}/work-orders/{{ work_order_id }}"
+        >
+          Munkalap megnyitása
+        </mj-button>
+        
+        <mj-spacer height="10px" />
+        
+        <mj-button 
+          background-color="#f57c00" 
+          color="#ffffff"
+          font-size="14px"
+          padding="12px 20px"
+          border-radius="5px"
+          href="{{ system_url }}/work-orders/{{ work_order_id }}/complete"
+        >
+          Gyors lezárás
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- SLA Details -->
+    <mj-section background-color="#f8f9fa" padding="20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#333333" font-weight="bold">
+          SLA Szabályok:
+        </mj-text>
+        <mj-text font-size="12px" color="#666666">
+          {% if priority == 'urgent' %}
+          • Sürgős munkák: 4 órán belül megoldás<br/>
+          • Azonnali eszkaláció szükséges határidő túllépés esetén<br/>
+          • Ügyfél értesítése kötelező
+          {% elif priority == 'high' %}
+          • Magas prioritású munkák: 24 órán belül megoldás<br/>
+          • Rendszeres státusz frissítés szükséges<br/>
+          • Előzetes ügyfél tájékoztatás ajánlott
+          {% else %}
+          • Normál munkák: 72 órán belül megoldás<br/>
+          • Heti státusz jelentés<br/>
+          • Lezáráskor ügyfél értesítés
+          {% endif %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#333333" padding="20px">
+      <mj-column>
+        <mj-text color="#ffffff" font-size="12px" align="center">
+          {{ organization_name }}<br/>
+          GarageReg SLA Monitoring - {{ current_date | datetime }}<br/>
+          Automatikus értesítés - Ne válaszoljon erre az e-mailre
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

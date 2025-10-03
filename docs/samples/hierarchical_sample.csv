@@ -1,0 +1,7 @@
+client_name,client_type,client_contact_person,client_email,client_phone,client_city,site_name,site_code,site_city,site_latitude,site_longitude,building_name,building_type,building_floors,building_units,gate_name,gate_type,manufacturer,model,serial_number,installation_date
+ABC Company,commercial,John Doe,john@abc.com,+36301234567,Budapest,Main Site,MS001,Budapest,47.4979,19.0402,Building A,office,3,12,Gate 1,sliding,Came,BXV-4,SN123456,2024-01-15
+ABC Company,commercial,John Doe,john@abc.com,+36301234567,Budapest,Main Site,MS001,Budapest,47.4979,19.0402,Building A,office,3,12,Gate 2,swing,Nice,ROBO500,SN789012,2024-01-20
+ABC Company,commercial,John Doe,john@abc.com,+36301234567,Budapest,Secondary Site,SS001,Budapest,47.5079,19.0502,Building B,warehouse,1,1,Main Gate,barrier,Faac,620 SR,SN345678,2024-02-01
+XYZ Residence,residential,Jane Smith,jane@xyz.hu,+36309876543,Debrecen,Residence Complex,RC001,Debrecen,47.5316,21.6273,Building 1,residential,4,16,Entrance Gate,turnstile,Kaba,R550,SN901234,2024-03-01
+XYZ Residence,residential,Jane Smith,jane@xyz.hu,+36309876543,Debrecen,Residence Complex,RC001,Debrecen,47.5316,21.6273,Building 1,residential,4,16,Parking Gate,sliding,Ditec,CROSS15,SN567890,2024-03-15
+Industrial Park Ltd,industrial,Mike Johnson,mike@industrial.hu,+36201234567,Székesfehérvár,Factory Site,FS001,Székesfehérvár,47.1925,18.4108,Production Hall,warehouse,1,1,Loading Bay Gate,sliding,Hormann,V4015,SN111222,2024-04-01

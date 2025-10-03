@@ -1,0 +1,353 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # =============================================================================
+  # CODE QUALITY & TESTING
+  # =============================================================================
+  
+  lint-and-test:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: garagereg_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'web-admin/package-lock.json'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+
+      # Backend Tests
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run backend linting
+        run: |
+          cd backend
+          black --check .
+          isort --check-only .
+          flake8 .
+          mypy .
+
+      - name: Run backend tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/garagereg_test
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          cd backend
+          pytest --cov=app --cov-report=xml --cov-report=term
+
+      - name: Upload backend coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+
+      # Frontend Tests
+      - name: Install frontend dependencies
+        run: |
+          cd web-admin
+          npm ci
+
+      - name: Run frontend linting
+        run: |
+          cd web-admin
+          npm run lint
+          npm run type-check
+
+      - name: Run frontend tests
+        run: |
+          cd web-admin
+          npm run test -- --coverage --watchAll=false
+
+      - name: Upload frontend coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./web-admin/coverage/lcov.info
+          flags: frontend
+
+      # Mobile Tests
+      - name: Get mobile dependencies
+        run: |
+          cd mobile
+          flutter pub get
+
+      - name: Run mobile analysis
+        run: |
+          cd mobile
+          flutter analyze
+
+      - name: Run mobile tests
+        run: |
+          cd mobile
+          flutter test --coverage
+
+      - name: Upload mobile coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./mobile/coverage/lcov.info
+          flags: mobile
+
+  # =============================================================================
+  # SECURITY SCANNING
+  # =============================================================================
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: python, javascript
+
+  # =============================================================================
+  # BUILD DOCKER IMAGES
+  # =============================================================================
+
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, security-scan]
+    if: github.event_name != 'pull_request'
+
+    strategy:
+      matrix:
+        service: [api, worker, web-admin]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service == 'api' && 'backend' || matrix.service == 'worker' && 'backend' || 'web-admin' }}
+          file: ./${{ matrix.service == 'api' && 'backend' || matrix.service == 'worker' && 'backend' || 'web-admin' }}/Dockerfile
+          target: ${{ matrix.service == 'worker' && 'development' || 'production' }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================================================
+  # INTEGRATION TESTS
+  # =============================================================================
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-images
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: cp .env.example .env
+
+      - name: Start services
+        run: |
+          docker compose -f docker-compose.yml up -d
+          sleep 30
+
+      - name: Wait for services
+        run: |
+          timeout 300 bash -c 'until curl -f http://localhost/api/healthz; do sleep 5; done'
+
+      - name: Run integration tests
+        run: |
+          # Add integration test commands here
+          curl -f http://localhost/api/healthz
+          curl -f http://localhost:3000
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          docker compose logs > docker-logs.txt
+          cat docker-logs.txt
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-logs
+          path: docker-logs.txt
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
+
+  # =============================================================================
+  # DEPLOYMENT (Production)
+  # =============================================================================
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production..."
+          # Add deployment commands here
+          # This could include:
+          # - Deploying to Kubernetes
+          # - Updating Docker services
+          # - Running database migrations
+          # - Notifying deployment status
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "📢 Deployment notification sent"
+          # Add notification logic (Slack, Teams, etc.)
+
+  # =============================================================================
+  # MOBILE BUILD (Android/iOS)
+  # =============================================================================
+
+  build-mobile:
+    name: Build Mobile Apps
+    runs-on: ${{ matrix.os }}
+    needs: lint-and-test
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: android
+          - os: macos-latest
+            platform: ios
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: |
+          cd mobile
+          flutter pub get
+
+      - name: Build APK (Android)
+        if: matrix.platform == 'android'
+        run: |
+          cd mobile
+          flutter build apk --release
+
+      - name: Build iOS
+        if: matrix.platform == 'ios'
+        run: |
+          cd mobile
+          flutter build ios --release --no-codesign
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: mobile-${{ matrix.platform }}
+          path: |
+            mobile/build/app/outputs/flutter-apk/app-release.apk
+            mobile/build/ios/iphoneos/Runner.app

@@ -1,0 +1,275 @@
+{
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "view": "Ansehen",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "sort": "Sortieren",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Information",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "first": "Erste",
+    "last": "Letzte",
+    "all": "Alle",
+    "none": "Keine",
+    "select": "Auswählen",
+    "required": "Pflichtfeld",
+    "optional": "Optional",
+    "name": "Name",
+    "description": "Beschreibung",
+    "status": "Status",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "date": "Datum",
+    "time": "Zeit",
+    "datetime": "Datum und Zeit",
+    "created": "Erstellt",
+    "updated": "Aktualisiert",
+    "createdAt": "Erstellt am",
+    "updatedAt": "Aktualisiert am",
+    "actions": "Aktionen",
+    "details": "Details",
+    "settings": "Einstellungen",
+    "preferences": "Einstellungen",
+    "profile": "Profil",
+    "account": "Konto",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "password": "Passwort",
+    "email": "E-Mail",
+    "username": "Benutzername",
+    "phone": "Telefon",
+    "address": "Adresse",
+    "city": "Stadt",
+    "country": "Land",
+    "language": "Sprache",
+    "theme": "Theme",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "organizations": "Organisationen",
+    "users": "Benutzer",
+    "roles": "Rollen",
+    "permissions": "Berechtigungen",
+    "clients": "Kunden",
+    "sites": "Standorte",
+    "buildings": "Gebäude",
+    "gates": "Tore",
+    "inspections": "Inspektionen",
+    "workOrders": "Arbeitsaufträge",
+    "reports": "Berichte",
+    "templates": "Vorlagen",
+    "documents": "Dokumente",
+    "analytics": "Analytik",
+    "audit": "Audit",
+    "security": "Sicherheit",
+    "maintenance": "Wartung",
+    "notifications": "Benachrichtigungen",
+    "inventory": "Inventar",
+    "calendar": "Kalender",
+    "tasks": "Aufgaben",
+    "projects": "Projekte",
+    "finance": "Finanzen",
+    "contracts": "Verträge",
+    "suppliers": "Lieferanten"
+  },
+  "auth": {
+    "login": {
+      "title": "Anmelden",
+      "subtitle": "Melden Sie sich in Ihr Konto an",
+      "username": "Benutzername oder E-Mail",
+      "password": "Passwort",
+      "rememberMe": "Angemeldet bleiben",
+      "forgotPassword": "Passwort vergessen?",
+      "loginButton": "Anmelden",
+      "noAccount": "Noch kein Konto?",
+      "createAccount": "Konto erstellen"
+    },
+    "register": {
+      "title": "Registrieren",
+      "subtitle": "Neues Konto erstellen",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail-Adresse",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "acceptTerms": "Ich akzeptiere die Nutzungsbedingungen",
+      "registerButton": "Registrieren",
+      "haveAccount": "Bereits ein Konto?",
+      "signIn": "Anmelden"
+    },
+    "errors": {
+      "invalidCredentials": "Ungültiger Benutzername oder Passwort",
+      "accountLocked": "Konto ist gesperrt",
+      "accountInactive": "Konto ist inaktiv",
+      "sessionExpired": "Sitzung ist abgelaufen",
+      "accessDenied": "Zugriff verweigert",
+      "passwordTooWeak": "Passwort ist zu schwach",
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "emailExists": "Diese E-Mail-Adresse wird bereits verwendet",
+      "usernameExists": "Dieser Benutzername ist bereits vergeben"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen",
+    "overview": "Übersicht",
+    "stats": {
+      "totalClients": "Kunden gesamt",
+      "totalSites": "Standorte gesamt",
+      "totalGates": "Tore gesamt",
+      "activeInspections": "Aktive Inspektionen",
+      "pendingWorkOrders": "Ausstehende Arbeitsaufträge",
+      "overdueTasks": "Überfällige Aufgaben",
+      "upcomingInspections": "Bevorstehende Inspektionen",
+      "criticalIssues": "Kritische Probleme"
+    },
+    "charts": {
+      "inspectionsByMonth": "Inspektionen nach Monat",
+      "gatesByType": "Tore nach Typ",
+      "workOrdersByStatus": "Arbeitsaufträge nach Status",
+      "maintenanceSchedule": "Wartungsplan"
+    },
+    "recentActivity": "Letzte Aktivitäten",
+    "quickActions": "Schnellaktionen",
+    "notifications": "Benachrichtigungen"
+  },
+  "clients": {
+    "title": "Kunden",
+    "subtitle": "Kundenverwaltung und -administration",
+    "create": "Neuer Kunde",
+    "edit": "Kunde bearbeiten",
+    "delete": "Kunde löschen",
+    "view": "Kunde ansehen",
+    "list": "Kundenliste",
+    "search": "Kunden suchen",
+    "filter": "Kunden filtern",
+    "export": "Kunden exportieren",
+    "import": "Kunden importieren",
+    "fields": {
+      "name": "Name",
+      "displayName": "Anzeigename",
+      "contactEmail": "Kontakt-E-Mail",
+      "contactPhone": "Kontakt-Telefon",
+      "address": "Adresse",
+      "isActive": "Aktiv",
+      "createdAt": "Erstellt am",
+      "updatedAt": "Aktualisiert am",
+      "sitesCount": "Anzahl Standorte",
+      "gatesCount": "Anzahl Tore"
+    },
+    "messages": {
+      "createSuccess": "Kunde erfolgreich erstellt",
+      "updateSuccess": "Kunde erfolgreich aktualisiert",
+      "deleteSuccess": "Kunde erfolgreich gelöscht",
+      "deleteConfirm": "Sind Sie sicher, dass Sie diesen Kunden löschen möchten?",
+      "deleteWarning": "Diese Aktion kann nicht rückgängig gemacht werden",
+      "noClients": "Keine Kunden gefunden",
+      "loadError": "Fehler beim Laden der Kunden"
+    }
+  },
+  "gates": {
+    "title": "Tore",
+    "subtitle": "Torverwaltung und -administration",
+    "create": "Neues Tor",
+    "edit": "Tor bearbeiten",
+    "delete": "Tor löschen",
+    "view": "Tor ansehen",
+    "list": "Torliste",
+    "fields": {
+      "building": "Gebäude",
+      "name": "Name",
+      "displayName": "Anzeigename",
+      "gateType": "Tortyp",
+      "manufacturer": "Hersteller",
+      "model": "Modell",
+      "serialNumber": "Seriennummer",
+      "installationDate": "Installationsdatum",
+      "warrantyExpiry": "Garantieablauf",
+      "locationDescription": "Standortbeschreibung",
+      "isActive": "Aktiv",
+      "inspectionsCount": "Anzahl Inspektionen",
+      "workOrdersCount": "Anzahl Arbeitsaufträge"
+    },
+    "types": {
+      "automatic": "Automatisch",
+      "manual": "Manuell",
+      "barrier": "Schranke",
+      "sliding": "Schiebetor",
+      "swing": "Flügeltor",
+      "overhead": "Sektionaltor",
+      "rolling": "Rolltor"
+    }
+  },
+  "formats": {
+    "date": {
+      "short": "DD.MM.YYYY",
+      "medium": "DD. MMM YYYY",
+      "long": "DD. MMMM YYYY, dddd",
+      "full": "DD. MMMM YYYY, dddd"
+    },
+    "time": {
+      "short": "HH:mm",
+      "medium": "HH:mm:ss",
+      "long": "HH:mm:ss Z"
+    },
+    "currency": {
+      "symbol": "€",
+      "code": "EUR",
+      "format": "{{amount}} {{symbol}}",
+      "decimal": ",",
+      "thousand": "."
+    },
+    "number": {
+      "decimal": ",",
+      "thousand": "."
+    }
+  },
+  "pdf": {
+    "header": {
+      "title": "Garage Registrierungssystem"
+    },
+    "content": {
+      "created": "Erstellt: {{date}}"
+    },
+    "footer": {
+      "generated": "Erstellt von {{system}} am {{date}}"
+    }
+  },
+  "invoice": {
+    "title": "Rechnung",
+    "number": "Rechnungsnummer: {{number}}",
+    "customer": "Kunde: {{name}}",
+    "issueDate": "Rechnungsdatum: {{date}}",
+    "dueDate": "Fälligkeitsdatum: {{date}}",
+    "total": "Gesamt: {{total}}",
+    "footer": "Vielen Dank für Ihr Vertrauen!"
+  },
+  "report": {
+    "period": "Zeitraum: {{from}} - {{to}}",
+    "summary": "Zusammenfassung",
+    "generated": "Bericht erstellt: {{date}}"
+  }
+}

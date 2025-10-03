@@ -1,0 +1,42 @@
+{
+  "name": "@garagereg/api-client",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for GarageReg API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "garagereg",
+    "api",
+    "client",
+    "sdk",
+    "typescript"
+  ],
+  "author": "GarageReg Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/garagereg"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/garagereg/issues"
+  },
+  "homepage": "https://github.com/your-org/garagereg#readme"
+}

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+            @top-right {
+                content: "{{ generation.document_number }}";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Oldal " counter(page) " / " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .company-logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        .qr-code {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .document-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .document-title h1 {
+            margin: 0;
+            font-size: 20pt;
+            color: #007bff;
+        }
+        
+        .document-title h2 {
+            margin: 5px 0 0 0;
+            font-size: 14pt;
+            font-weight: normal;
+            color: #666;
+        }
+        
+        .info-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            text-align: right;
+        }
+        
+        .section {
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #007bff;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .checklist-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .checklist-table th,
+        .checklist-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        .checklist-table th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .checklist-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .checkbox {
+            width: 15px;
+            height: 15px;
+            border: 2px solid #007bff;
+            display: inline-block;
+            text-align: center;
+            line-height: 13px;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+        
+        .checkbox.checked {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .checkbox.failed {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .priority-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .priority-medium {
+            color: #fd7e14;
+            font-weight: bold;
+        }
+        
+        .priority-low {
+            color: #28a745;
+        }
+        
+        .measurement-section {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .measurement-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .measurement-item {
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+        }
+        
+        .measurement-value {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #007bff;
+            display: block;
+        }
+        
+        .measurement-label {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .measurement-unit {
+            font-size: 10pt;
+            color: #888;
+        }
+        
+        .findings-section {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        
+        .finding-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0c674;
+        }
+        
+        .finding-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .finding-severity {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9pt;
+            text-transform: uppercase;
+        }
+        
+        .severity-critical {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .severity-major {
+            background-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .severity-minor {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .photo-section {
+            margin: 20px 0;
+        }
+        
+        .photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .photo-item {
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .photo-placeholder {
+            width: 100%;
+            height: 150px;
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .notes-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        
+        .signature-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        
+        .signature-box {
+            width: 180px;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .compliance-info {
+            background-color: #cce5ff;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+            font-size: 9pt;
+        }
+        
+        .footer-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        {% if include_logo %}
+        <div class="logo-section">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" 
+                 alt="Company Logo" class="company-logo">
+        </div>
+        {% endif %}
+        
+        <div class="document-title">
+            <h1>MUNKALAP</h1>
+            <h2>{{ inspection.inspection_number or 'Ellenőrzési dokumentum' }}</h2>
+        </div>
+        
+        {% if qr_code %}
+        <div class="qr-section">
+            <img src="{{ qr_code.image_path }}" alt="QR Code" class="qr-code">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Inspection Information -->
+    <div class="info-section">
+        <div class="info-grid">
+            <div class="left-col">
+                <div class="info-item">
+                    <span class="info-label">Ellenőrzés típusa:</span>
+                    <span class="info-value">{{ inspection.inspection_type or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Állapot:</span>
+                    <span class="info-value">{{ inspection.status or '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Ellenőrzés dátuma:</span>
+                    <span class="info-value">{{ inspection.inspection_date.strftime('%Y.%m.%d') if inspection.inspection_date else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Következő ellenőrzés:</span>
+                    <span class="info-value">{{ inspection.next_inspection_date.strftime('%Y.%m.%d') if inspection.next_inspection_date else '-' }}</span>
+                </div>
+            </div>
+            <div class="right-col">
+                <div class="info-item">
+                    <span class="info-label">Ellenőr:</span>
+                    <span class="info-value">{{ inspector.display_name or (inspector.first_name + ' ' + inspector.last_name) if inspector else '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Időtartam:</span>
+                    <span class="info-value">{{ inspection.duration_minutes }} perc</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Készültség:</span>
+                    <span class="info-value">{{ inspection.completion_percentage or 0 }}%</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Megfelelőség:</span>
+                    <span class="info-value">{{ 'MEGFELELŐ' if inspection.overall_result == 'PASS' else 'NEM MEGFELELŐ' if inspection.overall_result == 'FAIL' else 'FOLYAMATBAN' }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <strong>Készültség:</strong>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ inspection.completion_percentage or 0 }}%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gate Information -->
+    {% if gate %}
+    <div class="section">
+        <div class="section-title">Kapu információk</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Kapu neve:</span>
+                <span class="info-value">{{ gate.display_name or gate.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Hely:</span>
+                <span class="info-value">{{ gate.location_description or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Gyártó/Modell:</span>
+                <span class="info-value">{{ gate.manufacturer or '-' }} / {{ gate.model or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Sorozatszám:</span>
+                <span class="info-value">{{ gate.serial_number or '-' }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inspection Checklist -->
+    {% if checklist_items %}
+    <div class="section">
+        <div class="section-title">Ellenőrzési lista</div>
+        <table class="checklist-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">✓</th>
+                    <th>Ellenőrzési pont</th>
+                    <th style="width: 80px;">Prioritás</th>
+                    <th style="width: 120px;">Eredmény</th>
+                    <th>Megjegyzés</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in checklist_items %}
+                <tr>
+                    <td>
+                        <span class="checkbox {{ 'checked' if item.result == 'PASS' else 'failed' if item.result == 'FAIL' else '' }}">
+                            {{ '✓' if item.result == 'PASS' else '✗' if item.result == 'FAIL' else '' }}
+                        </span>
+                    </td>
+                    <td>{{ item.description }}</td>
+                    <td>
+                        <span class="priority-{{ item.priority.lower() }}">
+                            {{ item.priority }}
+                        </span>
+                    </td>
+                    <td>{{ item.result or 'PENDING' }}</td>
+                    <td>{{ item.notes or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="section">
+        <div class="section-title">Ellenőrzési lista</div>
+        <div class="no-data">Nincsenek ellenőrzési pontok meghatározva.</div>
+    </div>
+    {% endif %}
+
+    <!-- Measurements -->
+    {% if measurements %}
+    <div class="measurement-section">
+        <div class="section-title">Mérési eredmények</div>
+        <div class="measurement-grid">
+            {% for measurement in measurements %}
+            <div class="measurement-item">
+                <span class="measurement-value">{{ measurement.value }}</span>
+                <span class="measurement-unit">{{ measurement.unit }}</span>
+                <div class="measurement-label">{{ measurement.parameter_name }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Findings -->
+    {% if findings %}
+    <div class="findings-section">
+        <div class="section-title">Tapasztalatok és problémák</div>
+        {% for finding in findings %}
+        <div class="finding-item">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <strong>{{ finding.title }}</strong>
+                <span class="finding-severity severity-{{ finding.severity.lower() }}">
+                    {{ finding.severity }}
+                </span>
+            </div>
+            <p>{{ finding.description }}</p>
+            {% if finding.recommended_action %}
+            <div style="margin-top: 10px;">
+                <strong>Javasolt intézkedés:</strong> {{ finding.recommended_action }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="findings-section">
+        <div class="section-title">Tapasztalatok és problémák</div>
+        <div class="no-data">Nincsenek különleges tapasztalatok vagy problémák jelentve.</div>
+    </div>
+    {% endif %}
+
+    <!-- Photos -->
+    <div class="photo-section">
+        <div class="section-title">Dokumentáció (Fotók)</div>
+        {% if photos %}
+        <div class="photo-grid">
+            {% for photo in photos %}
+            <div class="photo-item">
+                {% if photo.file_path %}
+                <img src="{{ photo.file_path }}" alt="{{ photo.description }}" style="max-width: 100%; height: 150px; object-fit: cover;">
+                {% else %}
+                <div class="photo-placeholder">
+                    Fotó nem elérhető
+                </div>
+                {% endif %}
+                <div style="margin-top: 5px; font-size: 9pt;">
+                    {{ photo.description or 'Ellenőrzési fotó' }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="photo-grid">
+            <div class="photo-item">
+                <div class="photo-placeholder">
+                    Helyiség/kapu általános állapot
+                </div>
+            </div>
+            <div class="photo-item">
+                <div class="photo-placeholder">
+                    Kritikus pontok dokumentálása
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Notes Section -->
+    <div class="section">
+        <div class="section-title">További megjegyzések</div>
+        <div class="notes-section">
+            {% if inspection.notes %}
+            {{ inspection.notes }}
+            {% else %}
+            <div class="no-data">Nincsenek további megjegyzések.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Inspector Information -->
+    {% if inspector %}
+    <div class="section">
+        <div class="section-title">Ellenőr adatok</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Név:</span>
+                <span class="info-value">{{ inspector.display_name or (inspector.first_name + ' ' + inspector.last_name) }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Beosztás:</span>
+                <span class="info-value">{{ inspector.job_title or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Szervezeti egység:</span>
+                <span class="info-value">{{ inspector.department or '-' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Jogosítványok:</span>
+                <span class="info-value">{{ inspector.certifications or '-' }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Compliance Information -->
+    <div class="compliance-info">
+        <strong>Szabványossági információk:</strong><br>
+        Az ellenőrzés az alábbi szabványoknak és előírásoknak megfelelően lett elvégezve:<br>
+        {% for standard in compliance.standards %}
+        • {{ standard }}<br>
+        {% endfor %}
+        {% if compliance.safety_requirements %}
+        <br><strong>Biztonsági előírások:</strong> {{ compliance.safety_requirements }}
+        {% endif %}
+    </div>
+
+    <!-- Signatures -->
+    <div class="signature-area">
+        <div class="signature-box">
+            <div class="signature-line">Ellenőr aláírása</div>
+            <div style="margin-top: 5px; font-size: 9pt;">
+                {{ inspector.display_name if inspector else '' }}
+            </div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Felelős vezető</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Ügyfél aláírása</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-section">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                Generálva: {{ generation.date.strftime('%Y.%m.%d %H:%M:%S') }}
+            </div>
+            <div>
+                Dokumentum ID: {{ generation.document_number }}
+            </div>
+            <div>
+                Ellenőrzési URL: {{ qr_code.url if qr_code else '' }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

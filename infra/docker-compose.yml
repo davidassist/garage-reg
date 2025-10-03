@@ -1,0 +1,461 @@
+version: '3.8'
+
+# =============================================================================
+# GarageReg Local & Staging Environment
+# Complete containerized stack with Traefik reverse proxy
+# =============================================================================
+
+services:
+  # =============================================================================
+  # REVERSE PROXY & TLS TERMINATION
+  # =============================================================================
+  traefik:
+    image: traefik:v3.1
+    container_name: garagereg_traefik
+    restart: unless-stopped
+    command:
+      # API Configuration
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      - "--api.debug=false"
+      
+      # Docker Provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=garagereg-network"
+      
+      # File Provider for TLS certificates
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      
+      # Entry Points
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      
+      # TLS Configuration
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@garagereg.local"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      
+      # Logging
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--log.format=json"
+      
+      # Metrics
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addentrypointslabels=true"
+      - "--metrics.prometheus.addserviceslabels=true"
+    
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard (secured)
+    
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infra/traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./infra/traefik/certs:/etc/ssl/certs:ro
+      - traefik_letsencrypt:/letsencrypt
+    
+    networks:
+      - garagereg-network
+    
+    labels:
+      - "traefik.enable=true"
+      
+      # Traefik Dashboard
+      - "traefik.http.routers.traefik.rule=Host(`traefik.garagereg.local`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      
+      # Basic Auth for Traefik Dashboard (admin:admin)
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$10$$7rLSvRVyBCUIDOMfvcy.eeCE7Cs.9Hze8p5.tZnTsj9.EcuG.RaZq"
+    
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # =============================================================================
+  # DATABASE LAYER
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: garagereg_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-garagereg}
+      POSTGRES_USER: ${DB_USER:-garagereg}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-garagereg_secure_dev_password_2024}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db/init:/docker-entrypoint-initdb.d:ro
+      - ./infra/db/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    
+    ports:
+      - "5432:5432"
+    
+    networks:
+      - garagereg-network
+    
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-garagereg} -d ${DB_NAME:-garagereg}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    
+    labels:
+      - "traefik.enable=false"
+
+  # =============================================================================
+  # CACHE LAYER
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: garagereg_redis
+    restart: unless-stopped
+    command: 
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+      - --requirepass ${REDIS_PASSWORD:-garagereg_redis_dev_2024}
+    
+    volumes:
+      - redis_data:/data
+      - ./infra/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    
+    ports:
+      - "6379:6379"
+    
+    networks:
+      - garagereg-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-garagereg_redis_dev_2024}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    labels:
+      - "traefik.enable=false"
+
+  # =============================================================================
+  # BACKEND API
+  # =============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-production}
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    
+    container_name: garagereg_backend
+    restart: unless-stopped
+    
+    environment:
+      # Database Configuration
+      - DATABASE_URL=postgresql://${DB_USER:-garagereg}:${DB_PASSWORD:-garagereg_secure_dev_password_2024}@postgres:5432/${DB_NAME:-garagereg}
+      
+      # Redis Configuration  
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-garagereg_redis_dev_2024}@redis:6379/0
+      
+      # Application Configuration
+      - SECRET_KEY=${SECRET_KEY:-garagereg_ultra_secure_secret_key_for_local_dev_2024_change_in_production}
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      
+      # Environment
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - TESTING=false
+      
+      # CORS Configuration
+      - CORS_ORIGINS=https://app.garagereg.local,https://admin.garagereg.local,http://localhost:3000
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=json
+      
+      # Email Configuration (for staging)
+      - SMTP_HOST=${SMTP_HOST:-mailhog}
+      - SMTP_PORT=${SMTP_PORT:-1025}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_TLS=${SMTP_TLS:-false}
+      
+      # File Storage
+      - UPLOAD_DIR=/app/uploads
+      - MAX_UPLOAD_SIZE=10485760  # 10MB
+      
+      # Security
+      - SECURE_COOKIES=${SECURE_COOKIES:-true}
+      - HTTPS_ONLY=${HTTPS_ONLY:-true}
+    
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+      - ./backend/alembic:/app/alembic:ro
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    networks:
+      - garagereg-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    
+    labels:
+      - "traefik.enable=true"
+      
+      # API Routes
+      - "traefik.http.routers.backend-api.rule=Host(`api.garagereg.local`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-api.entrypoints=websecure"
+      - "traefik.http.routers.backend-api.tls=true"
+      - "traefik.http.routers.backend-api.service=backend-api"
+      - "traefik.http.services.backend-api.loadbalancer.server.port=8000"
+      
+      # Health Check Route
+      - "traefik.http.routers.backend-health.rule=Host(`api.garagereg.local`) && Path(`/health`)"
+      - "traefik.http.routers.backend-health.entrypoints=websecure"
+      - "traefik.http.routers.backend-health.tls=true"
+      
+      # Middleware for CORS and Security
+      - "traefik.http.routers.backend-api.middlewares=backend-cors,backend-security"
+      - "traefik.http.middlewares.backend-cors.headers.accesscontrolalloworiginlist=https://app.garagereg.local,https://admin.garagereg.local"
+      - "traefik.http.middlewares.backend-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.backend-cors.headers.accesscontrolallowheaders=Authorization,Content-Type"
+      - "traefik.http.middlewares.backend-security.headers.forcestsheader=true"
+      - "traefik.http.middlewares.backend-security.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.backend-security.headers.stspreload=true"
+      - "traefik.http.middlewares.backend-security.headers.stsseconds=31536000"
+
+  # =============================================================================
+  # WEB ADMIN INTERFACE
+  # =============================================================================
+  web-admin:
+    build:
+      context: ./web-admin-new
+      dockerfile: Dockerfile
+      target: ${WEB_BUILD_TARGET:-production}
+      args:
+        - VITE_API_URL=https://api.garagereg.local
+        - VITE_APP_TITLE=GarageReg Admin
+        - VITE_APP_VERSION=${APP_VERSION:-1.0.0}
+        - BUILDKIT_INLINE_CACHE=1
+    
+    container_name: garagereg_web_admin
+    restart: unless-stopped
+    
+    depends_on:
+      - backend
+    
+    networks:
+      - garagereg-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    labels:
+      - "traefik.enable=true"
+      
+      # Admin Interface
+      - "traefik.http.routers.web-admin.rule=Host(`admin.garagereg.local`)"
+      - "traefik.http.routers.web-admin.entrypoints=websecure"
+      - "traefik.http.routers.web-admin.tls=true"
+      - "traefik.http.routers.web-admin.service=web-admin"
+      - "traefik.http.services.web-admin.loadbalancer.server.port=3000"
+      
+      # Security Headers for Frontend
+      - "traefik.http.routers.web-admin.middlewares=web-security,web-compression"
+      - "traefik.http.middlewares.web-security.headers.forcestsheader=true"
+      - "traefik.http.middlewares.web-security.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.web-security.headers.stspreload=true"
+      - "traefik.http.middlewares.web-security.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.web-security.headers.framedeny=true"
+      - "traefik.http.middlewares.web-security.headers.contenttypenosniff=true"
+      - "traefik.http.middlewares.web-security.headers.browserxssfilter=true"
+      - "traefik.http.middlewares.web-compression.compress=true"
+
+  # =============================================================================
+  # MOBILE APP (FUTURE)
+  # =============================================================================
+  mobile-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-production}
+    
+    container_name: garagereg_mobile_api
+    restart: unless-stopped
+    
+    environment:
+      # Same as backend but with mobile-specific settings
+      - DATABASE_URL=postgresql://${DB_USER:-garagereg}:${DB_PASSWORD:-garagereg_secure_dev_password_2024}@postgres:5432/${DB_NAME:-garagereg}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-garagereg_redis_dev_2024}@redis:6379/1
+      - SECRET_KEY=${SECRET_KEY:-garagereg_ultra_secure_secret_key_for_local_dev_2024_change_in_production}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - CORS_ORIGINS=capacitor://localhost,ionic://localhost,http://localhost
+      - MOBILE_API=true
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    networks:
+      - garagereg-network
+    
+    labels:
+      - "traefik.enable=true"
+      
+      # Mobile API Routes  
+      - "traefik.http.routers.mobile-api.rule=Host(`mobile-api.garagereg.local`)"
+      - "traefik.http.routers.mobile-api.entrypoints=websecure"
+      - "traefik.http.routers.mobile-api.tls=true"
+      - "traefik.http.routers.mobile-api.service=mobile-api"
+      - "traefik.http.services.mobile-api.loadbalancer.server.port=8000"
+
+  # =============================================================================
+  # DEVELOPMENT TOOLS
+  # =============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: garagereg_mailhog
+    restart: unless-stopped
+    
+    networks:
+      - garagereg-network
+    
+    labels:
+      - "traefik.enable=true"
+      
+      # MailHog Web Interface
+      - "traefik.http.routers.mailhog.rule=Host(`mail.garagereg.local`)"
+      - "traefik.http.routers.mailhog.entrypoints=websecure"
+      - "traefik.http.routers.mailhog.tls=true"
+      - "traefik.http.routers.mailhog.service=mailhog"
+      - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
+
+  # =============================================================================
+  # MONITORING & OBSERVABILITY
+  # =============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: garagereg_prometheus
+    restart: unless-stopped
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    
+    networks:
+      - garagereg-network
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`metrics.garagereg.local`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.middlewares=traefik-auth"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: garagereg_grafana
+    restart: unless-stopped
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    
+    networks:
+      - garagereg-network
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`dashboard.garagereg.local`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  garagereg-network:
+    driver: bridge
+    name: garagereg-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  postgres_data:
+    name: garagereg_postgres_data
+    driver: local
+  
+  redis_data:
+    name: garagereg_redis_data
+    driver: local
+  
+  traefik_letsencrypt:
+    name: garagereg_traefik_letsencrypt
+    driver: local
+  
+  backend_uploads:
+    name: garagereg_backend_uploads
+    driver: local
+  
+  backend_logs:
+    name: garagereg_backend_logs
+    driver: local
+  
+  prometheus_data:
+    name: garagereg_prometheus_data
+    driver: local
+  
+  grafana_data:
+    name: garagereg_grafana_data
+    driver: local
