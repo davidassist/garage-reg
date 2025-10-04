@@ -1,53 +1,74 @@
-'use client'
+import GatesListPage from './gates-list'import GatesListPage from './gates-list'import GatesListPage from './gates-list'import GatesListPage from './gates-list'
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  DoorOpen,
-  Shield,
-  Zap,
-  Settings,
+
+
+export default GatesListPage
+
+export default GatesListPage
+
+export default GatesListPageexport default GatesListPage 
+  Eye,
   MoreHorizontal,
-  Filter,
-  Download,
-  Upload,
-  ArrowLeft,
-  Calendar,
+  Building2,
+  Settings,
+  Zap,
+  AlertTriangle,
   CheckCircle,
-  AlertCircle,
-  Wifi,
-  WifiOff
+  XCircle,
+  Clock,
+  Wrench
 } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table'
+import { useApiErrorToast } from '@/lib/toast'
+import { apiClient } from '@/lib/api/client'
+import { Gate, GateStatus, GateType } from '@/lib/api/types'
 import { withAuth } from '@/lib/auth/with-auth'
 import { PermissionResource, PermissionAction } from '@/lib/auth/types'
-import { BulkLabelGenerator } from '@/components/qr-labels/BulkLabelGenerator'
-import { FactoryQRImport } from '@/components/qr-labels/FactoryQRImport'
-import { LabelPreview } from '@/components/qr-labels/LabelPreview'
-import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { hu } from 'date-fns/locale'
 
-// Temporary toast implementation
-const toast = ({ title, description, variant }: { title: string, description: string, variant?: string }) => {
-  console.log(`${variant === 'destructive' ? 'ERROR' : 'INFO'}: ${title} - ${description}`)
-  alert(`${title}: ${description}`)
+// Gate status display configuration
+const gateStatusConfig: Record<GateStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
+  active: { 
+    label: 'Aktív', 
+    variant: 'default', 
+    icon: CheckCircle 
+  },
+  inactive: { 
+    label: 'Inaktív', 
+    variant: 'secondary', 
+    icon: XCircle 
+  },
+  maintenance: { 
+    label: 'Karbantartás alatt', 
+    variant: 'outline', 
+    icon: Wrench 
+  },
+  error: { 
+    label: 'Hibás', 
+    variant: 'destructive', 
+    icon: AlertTriangle 
+  },
 }
 
-interface Gate {
-  id: string
-  name: string
-  buildingId: string
-  buildingName: string
-  siteName: string
-  clientName: string
-  gateType: 'entry' | 'exit' | 'bidirectional' | 'emergency'
-  location: string
+// Gate type display configuration  
+const gateTypeConfig: Record<GateType, { label: string; icon: any }> = {
+  entrance: { label: 'Bejárat', icon: Building2 },
+  exit: { label: 'Kijárat', icon: Building2 },
+  service: { label: 'Szerviz', icon: Settings },
+  emergency: { label: 'Vészkijárat', icon: AlertTriangle },
+}
   manufacturer: string
   model: string
   serialNumber: string

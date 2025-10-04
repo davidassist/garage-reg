@@ -1,43 +1,44 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState, useRef, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/lib/auth/context'
-import { PermissionResource, PermissionAction } from '@/lib/auth/types'
-import { 
-  LayoutDashboard,
+import { UserRole, PermissionResource, PermissionAction } from '@/lib/auth/types'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  Home,
   Users,
   Building2,
-  Home,
+  Building,
   DoorOpen,
-  Shield,
-  Bug,
+  ClipboardCheck,
+  AlertTriangle,
   FileText,
   FolderOpen,
   BarChart3,
   Package,
   Settings,
+  ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  X,
-  Menu,
-  QrCode
+  User,
+  LogOut,
+  QrCode,
+  Calendar
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface MenuItem {
   id: string
   name: string
   href: string
   icon: any
-  badge?: number
-  children?: MenuItem[]
+  badge?: string
   requiredPermission?: {
     resource: PermissionResource
     action: PermissionAction
   }
-  requiredRole?: string[]
+  requiredRoles?: UserRole[]
 }
 
 const menuItems: MenuItem[] = [
@@ -45,7 +46,7 @@ const menuItems: MenuItem[] = [
     id: 'dashboard',
     name: 'Dashboard',
     href: '/dashboard',
-    icon: LayoutDashboard,
+    icon: Home
   },
   {
     id: 'clients',
@@ -53,27 +54,9 @@ const menuItems: MenuItem[] = [
     href: '/clients',
     icon: Users,
     requiredPermission: {
-      resource: PermissionResource.USERS,
+      resource: PermissionResource.CLIENTS,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'clients-list',
-        name: 'Ügyfél lista',
-        href: '/clients',
-        icon: Users,
-      },
-      {
-        id: 'clients-new',
-        name: 'Új ügyfél',
-        href: '/clients/new',
-        icon: Users,
-        requiredPermission: {
-          resource: PermissionResource.USERS,
-          action: PermissionAction.CREATE,
-        },
-      },
-    ],
+    }
   },
   {
     id: 'sites',
@@ -81,33 +64,19 @@ const menuItems: MenuItem[] = [
     href: '/sites',
     icon: Building2,
     requiredPermission: {
-      resource: PermissionResource.VEHICLES, // Using vehicles as site management
+      resource: PermissionResource.SITES,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'sites-list',
-        name: 'Telephely lista',
-        href: '/sites',
-        icon: Building2,
-      },
-      {
-        id: 'sites-map',
-        name: 'Térkép nézet',
-        href: '/sites/map',
-        icon: Building2,
-      },
-    ],
+    }
   },
   {
     id: 'buildings',
     name: 'Épületek',
     href: '/buildings',
-    icon: Home,
+    icon: Building,
     requiredPermission: {
-      resource: PermissionResource.VEHICLES,
+      resource: PermissionResource.BUILDINGS,
       action: PermissionAction.READ,
-    },
+    }
   },
   {
     id: 'gates',
@@ -115,77 +84,59 @@ const menuItems: MenuItem[] = [
     href: '/gates',
     icon: DoorOpen,
     requiredPermission: {
-      resource: PermissionResource.VEHICLES,
+      resource: PermissionResource.GATES,
       action: PermissionAction.READ,
-    },
-    badge: 3, // Example: 3 gates need attention
+    }
+  },
+  {
+    id: 'labels',
+    name: 'Címkék',
+    href: '/labels',
+    icon: QrCode,
+    requiredPermission: {
+      resource: PermissionResource.GATES,
+      action: PermissionAction.READ,
+    }
   },
   {
     id: 'inspections',
     name: 'Ellenőrzések',
     href: '/inspections',
-    icon: Shield,
+    icon: ClipboardCheck,
     requiredPermission: {
-      resource: PermissionResource.REGISTRATIONS,
+      resource: PermissionResource.VEHICLES,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'inspections-pending',
-        name: 'Függő ellenőrzések',
-        href: '/inspections/pending',
-        icon: Shield,
-        badge: 12,
-      },
-      {
-        id: 'inspections-completed',
-        name: 'Befejezett ellenőrzések',
-        href: '/inspections/completed',
-        icon: Shield,
-      },
-      {
-        id: 'inspections-schedule',
-        name: 'Ütemezés',
-        href: '/inspections/schedule',
-        icon: Shield,
-      },
-    ],
+    }
+  },
+  {
+    id: 'calendar',
+    name: 'Naptár',
+    href: '/calendar',
+    icon: Calendar,
+    requiredPermission: {
+      resource: PermissionResource.VEHICLES,
+      action: PermissionAction.READ,
+    }
   },
   {
     id: 'tickets',
     name: 'Hibajegyek',
     href: '/tickets',
-    icon: Bug,
+    icon: AlertTriangle,
     requiredPermission: {
-      resource: PermissionResource.REGISTRATIONS,
+      resource: PermissionResource.VEHICLES,
       action: PermissionAction.READ,
-    },
-    badge: 7, // Example: 7 open tickets
+    }
   },
   {
-    id: 'workorders',
+    id: 'worksheets',
     name: 'Munkalapok',
-    href: '/workorders',
+    href: '/worksheets',
     icon: FileText,
     requiredPermission: {
-      resource: PermissionResource.REGISTRATIONS,
+      resource: PermissionResource.VEHICLES,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'workorders-active',
-        name: 'Aktív munkalapok',
-        href: '/workorders/active',
-        icon: FileText,
-        badge: 5,
-      },
-      {
-        id: 'workorders-completed',
-        name: 'Befejezett munkalapok',
-        href: '/workorders/completed',
-        icon: FileText,
-      },
-    ],
+    }
   },
   {
     id: 'documents',
@@ -193,23 +144,9 @@ const menuItems: MenuItem[] = [
     href: '/documents',
     icon: FolderOpen,
     requiredPermission: {
-      resource: PermissionResource.REGISTRATIONS,
+      resource: PermissionResource.VEHICLES,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'documents-templates',
-        name: 'Sablonok',
-        href: '/documents/templates',
-        icon: FolderOpen,
-      },
-      {
-        id: 'documents-generated',
-        name: 'Generált dokumentumok',
-        href: '/documents/generated',
-        icon: FolderOpen,
-      },
-    ],
+    }
   },
   {
     id: 'reports',
@@ -219,41 +156,7 @@ const menuItems: MenuItem[] = [
     requiredPermission: {
       resource: PermissionResource.ANALYTICS,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'reports-performance',
-        name: 'Teljesítmény riportok',
-        href: '/reports/performance',
-        icon: BarChart3,
-      },
-      {
-        id: 'reports-compliance',
-        name: 'Megfelelőségi riportok',
-        href: '/reports/compliance',
-        icon: BarChart3,
-      },
-      {
-        id: 'reports-custom',
-        name: 'Egyedi riportok',
-        href: '/reports/custom',
-        icon: BarChart3,
-        requiredPermission: {
-          resource: PermissionResource.ANALYTICS,
-          action: PermissionAction.CREATE,
-        },
-      },
-    ],
-  },
-  {
-    id: 'labels',
-    name: 'Címkék',
-    href: '/labels',
-    icon: QrCode,
-    requiredPermission: {
-      resource: PermissionResource.VEHICLES,
-      action: PermissionAction.READ,
-    },
+    }
   },
   {
     id: 'inventory',
@@ -263,22 +166,7 @@ const menuItems: MenuItem[] = [
     requiredPermission: {
       resource: PermissionResource.VEHICLES,
       action: PermissionAction.READ,
-    },
-    children: [
-      {
-        id: 'inventory-items',
-        name: 'Raktári tételek',
-        href: '/inventory/items',
-        icon: Package,
-      },
-      {
-        id: 'inventory-low-stock',
-        name: 'Alacsony készlet',
-        href: '/inventory/low-stock',
-        icon: Package,
-        badge: 8,
-      },
-    ],
+    }
   },
   {
     id: 'settings',
@@ -289,258 +177,241 @@ const menuItems: MenuItem[] = [
       resource: PermissionResource.SETTINGS,
       action: PermissionAction.READ,
     },
-    children: [
-      {
-        id: 'settings-general',
-        name: 'Általános beállítások',
-        href: '/settings/general',
-        icon: Settings,
-      },
-      {
-        id: 'settings-users',
-        name: 'Felhasználók',
-        href: '/settings/users',
-        icon: Settings,
-        requiredPermission: {
-          resource: PermissionResource.USERS,
-          action: PermissionAction.MANAGE,
-        },
-      },
-      {
-        id: 'settings-api-test',
-        name: 'API Hibakezelés Teszt',
-        href: '/api-test',
-        icon: Settings,
-        requiredPermission: {
-          resource: PermissionResource.SETTINGS,
-          action: PermissionAction.READ,
-        },
-      },
-      {
-        id: 'settings-security',
-        name: 'Biztonsági beállítások',
-        href: '/settings/security',
-        icon: Settings,
-        requiredRole: ['admin', 'super_admin'],
-      },
-    ],
-  },
+    requiredRoles: [UserRole.ADMIN, UserRole.SUPER_ADMIN]
+  }
 ]
 
 interface SidebarProps {
-  isOpen: boolean
-  onClose: () => void
+  isCollapsed?: boolean
+  onToggle?: () => void
   className?: string
 }
 
-export default function Sidebar({ isOpen, onClose, className }: SidebarProps) {
+export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarProps) {
   const pathname = usePathname()
-  const { checkPermission, hasRole } = useAuth()
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['dashboard']))
+  const auth = useAuth()
+  const [focusedIndex, setFocusedIndex] = useState(-1)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([])
 
-  // Filter menu items based on user permissions
-  const filterMenuItems = (items: MenuItem[]): MenuItem[] => {
-    return items.filter(item => {
-      // Check role requirement
-      if (item.requiredRole) {
-        const hasRequiredRole = item.requiredRole.some(role => hasRole(role))
-        if (!hasRequiredRole) return false
-      }
-      
-      // Check permission requirement
-      if (item.requiredPermission) {
-        const hasPermission = checkPermission(
-          item.requiredPermission.resource,
-          item.requiredPermission.action
-        )
-        if (!hasPermission) return false
-      }
-      
-      // Filter children recursively
-      if (item.children) {
-        item.children = filterMenuItems(item.children)
-      }
-      
+  // Filter menu items based on user permissions and roles
+  const filteredMenuItems = menuItems.filter(item => {
+    // Always show items with no restrictions
+    if (!item.requiredRoles && !item.requiredPermission) {
       return true
-    })
-  }
-
-  const filteredMenuItems = filterMenuItems([...menuItems])
-
-  const toggleExpanded = (itemId: string) => {
-    const newExpanded = new Set(expandedItems)
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId)
-    } else {
-      newExpanded.add(itemId)
     }
-    setExpandedItems(newExpanded)
-  }
 
-  const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/')
-  }
-
-  const handleKeyDown = (event: React.KeyboardEvent, action: () => void) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      action()
+    // Check role requirements
+    if (item.requiredRoles) {
+      const hasRequiredRole = item.requiredRoles.some(role => auth.hasRole(role))
+      if (!hasRequiredRole) return false
     }
-  }
 
-  const renderMenuItem = (item: MenuItem, level: number = 0) => {
-    const Icon = item.icon
-    const isExpanded = expandedItems.has(item.id)
-    const itemIsActive = isActive(item.href)
-    const hasChildren = item.children && item.children.length > 0
+    // Check permission requirements
+    if (item.requiredPermission) {
+      const hasPermission = auth.hasPermission(
+        item.requiredPermission.resource,
+        item.requiredPermission.action
+      )
+      if (!hasPermission) return false
+    }
 
-    return (
-      <li key={item.id} className="mb-1">
-        <div className="relative">
-          {hasChildren ? (
-            // Expandable menu item
-            <button
-              onClick={() => toggleExpanded(item.id)}
-              onKeyDown={(e) => handleKeyDown(e, () => toggleExpanded(item.id))}
-              className={cn(
-                'w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                level === 0 ? 'pl-3' : 'pl-8',
-                itemIsActive
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-              )}
-              aria-expanded={isExpanded}
-              aria-controls={`submenu-${item.id}`}
-              aria-label={`${item.name} menü ${isExpanded ? 'bezárása' : 'kinyitása'}`}
-            >
-              <div className="flex items-center">
-                <Icon 
-                  className={cn(
-                    'h-5 w-5 mr-3 flex-shrink-0',
-                    itemIsActive ? 'text-blue-600' : 'text-gray-400'
-                  )} 
-                  aria-hidden="true"
-                />
-                <span className="truncate">{item.name}</span>
-                {item.badge && (
-                  <span 
-                    className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full"
-                    aria-label={`${item.badge} új elem`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-              <ChevronRight 
-                className={cn(
-                  'h-4 w-4 transition-transform duration-200',
-                  isExpanded ? 'transform rotate-90' : ''
-                )}
-                aria-hidden="true"
-              />
-            </button>
-          ) : (
-            // Regular menu item
-            <Link
-              href={item.href}
-              onClick={onClose}
-              onKeyDown={(e) => handleKeyDown(e, () => {
-                window.location.href = item.href
-                onClose()
-              })}
-              className={cn(
-                'flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                level === 0 ? 'pl-3' : 'pl-8',
-                itemIsActive
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-              )}
-              aria-current={itemIsActive ? 'page' : undefined}
-            >
-              <Icon 
-                className={cn(
-                  'h-5 w-5 mr-3 flex-shrink-0',
-                  itemIsActive ? 'text-blue-600' : 'text-gray-400'
-                )} 
-                aria-hidden="true"
-              />
-              <span className="truncate">{item.name}</span>
-              {item.badge && (
-                <span 
-                  className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full"
-                  aria-label={`${item.badge} új elem`}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          )}
+    return true
+  })
 
-          {/* Submenu */}
-          {hasChildren && isExpanded && (
-            <ul 
-              id={`submenu-${item.id}`}
-              className="mt-1 space-y-1"
-              role="menu"
-              aria-label={`${item.name} almenü`}
-            >
-              {item.children?.map(child => renderMenuItem(child, level + 1))}
-            </ul>
-          )}
-        </div>
-      </li>
-    )
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) return
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault()
+          setFocusedIndex(prev => 
+            prev < filteredMenuItems.length - 1 ? prev + 1 : 0
+          )
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          setFocusedIndex(prev => 
+            prev > 0 ? prev - 1 : filteredMenuItems.length - 1
+          )
+          break
+        case 'Home':
+          e.preventDefault()
+          setFocusedIndex(0)
+          break
+        case 'End':
+          e.preventDefault()
+          setFocusedIndex(filteredMenuItems.length - 1)
+          break
+        case 'Enter':
+        case ' ':
+          if (focusedIndex >= 0 && itemRefs.current[focusedIndex]) {
+            e.preventDefault()
+            itemRefs.current[focusedIndex]?.click()
+          }
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [focusedIndex, filteredMenuItems.length])
+
+  // Focus management
+  useEffect(() => {
+    if (focusedIndex >= 0 && itemRefs.current[focusedIndex]) {
+      itemRefs.current[focusedIndex]?.focus()
+    }
+  }, [focusedIndex])
+
+  const handleLogout = async () => {
+    await auth.logout()
   }
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-          onClick={onClose}
-          aria-hidden="true"
-        />
+    <aside
+      className={cn(
+        "flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64",
+        className
       )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full',
-          className
+      aria-label="Oldalsáv navigáció"
+    >
+      {/* Logo and Toggle */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        {!isCollapsed && (
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">GR</span>
+            </div>
+            <span className="font-semibold text-gray-900">GarageReg</span>
+          </div>
         )}
-        aria-label="Fő navigáció"
-        role="navigation"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-          <div className="flex items-center">
-            <h1 className="text-lg font-semibold text-gray-900">GarageReg</h1>
-          </div>
-          <button
-            onClick={onClose}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Navigáció bezárása"
+        
+        {onToggle && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="p-1.5"
+            aria-label={isCollapsed ? "Oldalsáv kiterjesztése" : "Oldalsáv összecsukása"}
+            aria-expanded={!isCollapsed}
           >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </div>
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        )}
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 overflow-y-auto" aria-label="Fő menü">
-          <ul className="space-y-1" role="menubar">
-            {filteredMenuItems.map(item => renderMenuItem(item))}
-          </ul>
-        </nav>
+      {/* Navigation Menu */}
+      <nav 
+        className="flex-1 overflow-y-auto py-4"
+        role="navigation"
+        aria-label="Fő navigáció"
+        ref={menuRef}
+      >
+        <ul className="space-y-1 px-3" role="menubar">
+          {filteredMenuItems.map((item, index) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const Icon = item.icon
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="text-xs text-gray-500 text-center">
-            © 2025 GarageReg
+            return (
+              <li key={item.id} role="none">
+                <Link
+                  ref={el => { itemRefs.current[index] = el }}
+                  href={item.href}
+                  role="menuitem"
+                  tabIndex={focusedIndex === index ? 0 : -1}
+                  onFocus={() => setFocusedIndex(index)}
+                  onBlur={() => setFocusedIndex(-1)}
+                  className={cn(
+                    "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors group relative",
+                    "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                    isActive
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                    isCollapsed && "justify-center px-2"
+                  )}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  <Icon 
+                    className={cn(
+                      "flex-shrink-0 h-5 w-5",
+                      isActive ? "text-blue-600" : "text-gray-500 group-hover:text-gray-700",
+                      !isCollapsed && "mr-3"
+                    )}
+                    aria-hidden="true"
+                  />
+                  
+                  {!isCollapsed && (
+                    <>
+                      <span className="truncate">{item.name}</span>
+                      {item.badge && (
+                        <span 
+                          className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                          aria-label={`${item.badge} értesítés`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+
+                  {/* Tooltip for collapsed state */}
+                  {isCollapsed && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      {item.name}
+                      <div className="absolute top-1/2 -left-1 w-2 h-2 bg-gray-900 rotate-45 transform -translate-y-1/2"></div>
+                    </div>
+                  )}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+
+      {/* User Profile */}
+      {auth.user && (
+        <div className="border-t border-gray-200 p-4">
+          <div className={cn(
+            "flex items-center space-x-3",
+            isCollapsed && "justify-center"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-gray-600" />
+              </div>
+            </div>
+            
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {auth.user.name}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {auth.user.email}
+                </p>
+              </div>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="p-1.5"
+              aria-label="Kijelentkezés"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-      </aside>
-    </>
+      )}
+    </aside>
   )
 }

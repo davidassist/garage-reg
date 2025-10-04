@@ -346,7 +346,7 @@ export default function Topbar({ onToggleSidebar, className }: TopbarProps) {
                   </div>
                   <div className="text-xs text-gray-500 flex items-center">
                     <Shield className="h-3 w-3 mr-1" aria-hidden="true" />
-                    {user?.role?.displayName || user?.role?.name || 'Felhasználó'}
+                    {user?.roles?.[0]?.name || 'Felhasználó'}
                   </div>
                 </div>
                 <ChevronDown 

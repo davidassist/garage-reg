@@ -7,6 +7,7 @@ import { ClientsPage } from './pages/ClientsPage'
 import { SitesPage } from './pages/SitesPage'
 import { BuildingsPage } from './pages/BuildingsPage'
 import { GatesPage } from './pages/GatesPage'
+import { AuditPage } from './pages/AuditPage'
 import { Layout } from './components/layout/Layout'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
@@ -76,6 +77,15 @@ function App() {
             element={
               <ProtectedRoute requiredPermissions={[{ resource: 'gates', action: 'read' }]}>
                 <GatesPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/audit"
+            element={
+              <ProtectedRoute requiredPermissions={[{ resource: 'reports', action: 'read' }]}>
+                <AuditPage />
               </ProtectedRoute>
             }
           />

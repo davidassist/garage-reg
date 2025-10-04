@@ -198,6 +198,85 @@ class AuthorizationMatrix:
             description="Basic operational access for daily tasks",
             permissions=operator_permissions
         )
+
+    def generate_authorization_matrix(self) -> Dict[str, Dict[str, bool]]:
+        """Generate authorization matrix showing role-permission mapping"""
+        matrix = {}
+        
+        for role_name, role_def in self.role_definitions.items():
+            matrix[role_name] = {}
+            for permission in Permission:
+                matrix[role_name][permission.value] = permission in role_def.permissions
+                
+        return matrix
+    
+    def print_authorization_matrix(self) -> str:
+        """Generate human-readable authorization matrix"""
+        matrix = self.generate_authorization_matrix()
+        
+        output = ["\\n🔐 JOGOSULTSÁGI MÁTRIX (AUTHORIZATION MATRIX)"]
+        output.append("=" * 80)
+        
+        # Header
+        roles = list(self.role_definitions.keys())
+        header = f"{'Permission':<30}"
+        for role in roles:
+            header += f"{role:<15}"
+        output.append(header)
+        output.append("-" * 80)
+        
+        # Permission rows
+        for permission in Permission:
+            row = f"{permission.value:<30}"
+            for role in roles:
+                has_permission = matrix[role][permission.value]
+                symbol = "✅" if has_permission else "❌"
+                row += f"{symbol:<15}"
+            output.append(row)
+            
+        return "\\n".join(output)
+    
+    async def permission_check(
+        self, 
+        user_id: str, 
+        permission: Union[Permission, str], 
+        resource_id: Optional[str] = None
+    ) -> bool:
+        """Check if user has specific permission"""
+        try:
+            # Get user roles from cache or database
+            user_roles = await self.get_user_roles(user_id)
+            
+            # Convert string permission to enum
+            if isinstance(permission, str):
+                try:
+                    permission = Permission(permission)
+                except ValueError:
+                    logger.warning("Invalid permission", permission=permission)
+                    return False
+            
+            # Check if any user role has the required permission
+            for role_name in user_roles:
+                role_def = self.role_definitions.get(role_name)
+                if role_def and permission in role_def.permissions:
+                    logger.debug("Permission granted", 
+                               user_id=user_id, 
+                               permission=permission.value, 
+                               role=role_name)
+                    return True
+            
+            logger.info("Permission denied", 
+                       user_id=user_id, 
+                       permission=permission.value, 
+                       roles=user_roles)
+            return False
+            
+        except Exception as e:
+            logger.error("Permission check failed", 
+                        user_id=user_id, 
+                        permission=permission, 
+                        error=str(e))
+            return False
         
         # Viewer - Read-only access
         viewer_permissions = {

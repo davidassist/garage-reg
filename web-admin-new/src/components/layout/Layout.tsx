@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   LogOut,
-  User
+  User,
+  FileSearch
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -61,6 +62,12 @@ export function Layout({ children }: LayoutProps) {
       label: 'Kapuk',
       icon: DoorOpen,
       permission: { resource: 'gates', action: 'read' },
+    },
+    {
+      path: '/audit',
+      label: 'Audit Naplók',
+      icon: FileSearch,
+      permission: { resource: 'reports', action: 'read' },
     },
   ]
 

@@ -1,0 +1,2 @@
+id,organization_id,name,client_code,contact_email,is_active,created_at
+1,1,Test Client Alpha,TCA001,contact@alpha.test,True,2024-01-15T00:00:00

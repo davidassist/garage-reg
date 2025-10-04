@@ -1,0 +1,2 @@
+id,client_id,organization_id,name,site_code,address_line_1,city,is_active,created_at
+1,1,1,Alpha Test Site,ATS001,123 Test Street,Test City,True,2024-01-20T00:00:00

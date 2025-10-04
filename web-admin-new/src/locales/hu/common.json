@@ -47,27 +47,10 @@
     "actions": "Műveletek",
     "details": "Részletek",
     "settings": "Beállítások",
-    "preferences": "Preferenciák",
-    "profile": "Profil",
-    "account": "Fiók",
-    "logout": "Kijelentkezés",
-    "login": "Bejelentkezés",
-    "register": "Regisztráció",
-    "password": "Jelszó",
-    "email": "E-mail",
-    "username": "Felhasználónév",
-    "phone": "Telefon",
-    "address": "Cím",
-    "city": "Város",
-    "country": "Ország",
-    "language": "Nyelv",
-    "theme": "Téma",
-    "light": "Világos",
-    "dark": "Sötét",
-    "system": "Rendszer"
+    "preferences": "Preferenciák"
   },
   "navigation": {
-    "dashboard": "Irányítópult",
+    "dashboard": "Dashboard",
     "organizations": "Szervezetek",
     "users": "Felhasználók",
     "roles": "Szerepkörök",
@@ -92,54 +75,31 @@
     "projects": "Projektek",
     "finance": "Pénzügy",
     "contracts": "Szerződések",
-    "suppliers": "Beszállítók"
+    "suppliers": "Beszállítók",
+    "settings": "Beállítások"
   },
   "auth": {
     "login": {
       "title": "Bejelentkezés",
-      "subtitle": "Jelentkezzen be a fiókjába",
-      "username": "Felhasználónév vagy e-mail",
-      "password": "Jelszó",
-      "rememberMe": "Emlékezzen rám",
-      "forgotPassword": "Elfelejtett jelszó?",
-      "loginButton": "Bejelentkezés",
-      "noAccount": "Nincs még fiókja?",
-      "createAccount": "Fiók létrehozása"
-    },
-    "register": {
-      "title": "Regisztráció",
-      "subtitle": "Hozzon létre új fiókot",
-      "firstName": "Keresztnév",
-      "lastName": "Vezetéknév",
-      "email": "E-mail cím",
       "username": "Felhasználónév",
       "password": "Jelszó",
-      "confirmPassword": "Jelszó megerősítése",
-      "acceptTerms": "Elfogadom a felhasználási feltételeket",
-      "registerButton": "Regisztráció",
-      "haveAccount": "Van már fiókja?",
-      "signIn": "Bejelentkezés"
+      "submit": "Bejelentkezés",
+      "forgotPassword": "Elfelejtett jelszó?",
+      "rememberMe": "Emlékezzen rám"
     },
-    "errors": {
-      "invalidCredentials": "Érvénytelen felhasználónév vagy jelszó",
-      "accountLocked": "A fiók zárolva van",
-      "accountInactive": "A fiók inaktív",
-      "sessionExpired": "A munkamenet lejárt",
-      "accessDenied": "Hozzáférés megtagadva",
-      "passwordTooWeak": "A jelszó túl gyenge",
-      "passwordMismatch": "A jelszavak nem egyeznek",
-      "emailExists": "Ez az e-mail cím már használatban van",
-      "usernameExists": "Ez a felhasználónév már foglalt"
-    }
+    "logout": "Kijelentkezés",
+    "profile": "Profil",
+    "changePassword": "Jelszó módosítása",
+    "twoFactor": "Kétfaktoros hitelesítés"
   },
   "dashboard": {
-    "title": "Irányítópult",
+    "title": "Dashboard",
     "welcome": "Üdvözöljük",
     "overview": "Áttekintés",
     "stats": {
-      "totalClients": "Összes ügyfél",
-      "totalSites": "Összes telephely",
-      "totalGates": "Összes kapu",
+      "totalClients": "Ügyfelek összesen",
+      "totalSites": "Telephelyek összesen",
+      "totalGates": "Kapuk összesen",
       "activeInspections": "Aktív ellenőrzések",
       "pendingWorkOrders": "Függőben lévő munkarendelések",
       "overdueTasks": "Lejárt feladatok",
@@ -149,471 +109,95 @@
     "charts": {
       "inspectionsByMonth": "Ellenőrzések havi bontásban",
       "gatesByType": "Kapuk típus szerint",
-      "workOrdersByStatus": "Munkarendelések státusz szerint",
-      "maintenanceSchedule": "Karbantartási ütemterv"
-    },
-    "recentActivity": "Legutóbbi tevékenységek",
-    "quickActions": "Gyors műveletek",
-    "notifications": "Értesítések"
+      "workOrdersByStatus": "Munkarendelések státusz szerint"
+    }
   },
   "clients": {
     "title": "Ügyfelek",
-    "subtitle": "Ügyfelek kezelése és adminisztrációja",
-    "create": "Új ügyfél",
-    "edit": "Ügyfél szerkesztése",
-    "delete": "Ügyfél törlése",
-    "view": "Ügyfél megtekintése",
-    "list": "Ügyfelek listája",
-    "search": "Ügyfelek keresése",
-    "filter": "Ügyfelek szűrése",
-    "export": "Ügyfelek exportálása",
-    "import": "Ügyfelek importálása",
-    "fields": {
-      "name": "Név",
-      "displayName": "Megjelenített név",
-      "contactEmail": "Kapcsolattartó e-mail",
-      "contactPhone": "Kapcsolattartó telefon",
-      "address": "Cím",
-      "isActive": "Aktív",
-      "createdAt": "Létrehozva",
-      "updatedAt": "Frissítve",
-      "sitesCount": "Telephelyek száma",
-      "gatesCount": "Kapuk száma"
-    },
-    "messages": {
-      "createSuccess": "Ügyfél sikeresen létrehozva",
-      "updateSuccess": "Ügyfél sikeresen frissítve",
-      "deleteSuccess": "Ügyfél sikeresen törölve",
-      "deleteConfirm": "Biztosan törölni szeretné ezt az ügyfelet?",
-      "deleteWarning": "Ez a művelet nem vonható vissza",
-      "noClients": "Nincsenek ügyfelek",
-      "loadError": "Hiba az ügyfelek betöltésekor"
-    }
-  },
-  "sites": {
-    "title": "Telephelyek",
-    "subtitle": "Telephelyek kezelése és adminisztrációja",
-    "create": "Új telephely",
-    "edit": "Telephely szerkesztése",
-    "delete": "Telephely törlése",
-    "view": "Telephely megtekintése",
-    "list": "Telephelyek listája",
-    "fields": {
-      "client": "Ügyfél",
-      "name": "Név",
-      "displayName": "Megjelenített név",
-      "address": "Cím",
-      "description": "Leírás",
-      "isActive": "Aktív",
-      "buildingsCount": "Épületek száma",
-      "gatesCount": "Kapuk száma"
-    }
-  },
-  "buildings": {
-    "title": "Épületek",
-    "subtitle": "Épületek kezelése és adminisztrációja",
-    "create": "Új épület",
-    "edit": "Épület szerkesztése",
-    "delete": "Épület törlése",
-    "view": "Épület megtekintése",
-    "list": "Épületek listája",
-    "fields": {
-      "site": "Telephely",
-      "name": "Név",
-      "displayName": "Megjelenített név",
-      "description": "Leírás",
-      "floorCount": "Szintek száma",
-      "totalArea": "Összes terület (m²)",
-      "isActive": "Aktív",
-      "gatesCount": "Kapuk száma"
-    }
+    "newClient": "Új ügyfél",
+    "editClient": "Ügyfél szerkesztése",
+    "clientDetails": "Ügyfél részletei",
+    "companyName": "Cégnév",
+    "contactPerson": "Kapcsolattartó",
+    "email": "E-mail",
+    "phone": "Telefon",
+    "address": "Cím",
+    "taxNumber": "Adószám",
+    "registrationNumber": "Cégjegyzékszám"
   },
   "gates": {
     "title": "Kapuk",
-    "subtitle": "Kapuk kezelése és adminisztrációja",
-    "create": "Új kapu",
-    "edit": "Kapu szerkesztése",
-    "delete": "Kapu törlése",
-    "view": "Kapu megtekintése",
-    "list": "Kapuk listája",
-    "fields": {
-      "building": "Épület",
-      "name": "Név",
-      "displayName": "Megjelenített név",
-      "gateType": "Kapu típusa",
-      "manufacturer": "Gyártó",
-      "model": "Modell",
-      "serialNumber": "Sorozatszám",
-      "installationDate": "Telepítés dátuma",
-      "warrantyExpiry": "Garancia lejárata",
-      "locationDescription": "Helyszín leírása",
-      "isActive": "Aktív",
-      "inspectionsCount": "Ellenőrzések száma",
-      "workOrdersCount": "Munkarendelések száma"
-    },
-    "types": {
-      "automatic": "Automata",
-      "manual": "Kézi",
-      "barrier": "Sorompó",
-      "sliding": "Tolókapu",
-      "swing": "Nyílókapu",
-      "overhead": "Felsővezetékes",
-      "rolling": "Redőnykapu"
-    }
+    "newGate": "Új kapu",
+    "editGate": "Kapu szerkesztése",
+    "gateDetails": "Kapu részletei",
+    "gateType": "Kapu típusa",
+    "manufacturer": "Gyártó",
+    "model": "Modell",
+    "serialNumber": "Sorozatszám",
+    "installationDate": "Telepítés dátuma",
+    "warrantyExpiry": "Garancia lejárata",
+    "location": "Helyszín",
+    "status": "Állapot"
   },
   "inspections": {
     "title": "Ellenőrzések",
-    "subtitle": "Ellenőrzések kezelése és adminisztrációja",
-    "create": "Új ellenőrzés",
-    "edit": "Ellenőrzés szerkesztése",
-    "delete": "Ellenőrzés törlése",
-    "view": "Ellenőrzés megtekintése",
-    "list": "Ellenőrzések listája",
-    "schedule": "Ellenőrzés ütemezése",
-    "complete": "Ellenőrzés befejezése",
-    "fields": {
-      "gate": "Kapu",
-      "inspector": "Ellenőr",
-      "scheduledDate": "Tervezett dátum",
-      "completedDate": "Befejezés dátuma",
-      "status": "Státusz",
+    "newInspection": "Új ellenőrzés",
+    "editInspection": "Ellenőrzés szerkesztése",
+    "inspectionDetails": "Ellenőrzés részletei",
+    "inspector": "Ellenőr",
+    "inspectionDate": "Ellenőrzés dátuma",
+    "inspectionType": "Ellenőrzés típusa",
+    "result": "Eredmény",
+    "findings": "Megállapítások",
+    "recommendations": "Ajánlások",
+    "nextInspection": "Következő ellenőrzés",
+    "certificate": "Tanúsítvány"
+  },
+  "pdf": {
+    "header": {
+      "title": "GarageReg Dokumentum",
+      "company": "GarageReg Kft.",
+      "address": "1234 Budapest, Példa utca 12."
+    },
+    "footer": {
+      "generated": "Generálva: {{date}} - {{system}}",
+      "page": "Oldal {{current}} / {{total}}"
+    },
+    "invoice": {
+      "title": "Számla",
+      "number": "Számlaszám: {{number}}",
+      "customer": "Ügyfél: {{name}}",
+      "issueDate": "Kiállítás dátuma: {{date}}",
+      "dueDate": "Esedékesség: {{date}}",
+      "total": "Összesen: {{total}}",
+      "footer": "Köszönjük a bizalmát!"
+    },
+    "report": {
+      "title": "Jelentés",
+      "period": "Időszak: {{from}} - {{to}}",
+      "summary": "Összefoglaló",
+      "generated": "Generálva: {{date}}"
+    },
+    "certificate": {
+      "title": "Tanúsítvány",
+      "gateInfo": "Kapu információ",
+      "inspectionInfo": "Ellenőrzés információ",
       "result": "Eredmény",
-      "notes": "Megjegyzések",
-      "findings": "Megállapítások",
-      "recommendations": "Javaslatok",
-      "nextInspectionDate": "Következő ellenőrzés dátuma"
-    },
-    "statuses": {
-      "scheduled": "Ütemezett",
-      "inProgress": "Folyamatban",
-      "completed": "Befejezett",
-      "cancelled": "Törölve",
-      "overdue": "Lejárt"
-    },
-    "results": {
-      "passed": "Megfelelő",
-      "failed": "Nem megfelelő",
-      "partiallyPassed": "Részben megfelelő",
-      "requiresMaintenance": "Karbantartást igényel"
+      "validity": "Érvényesség"
     }
   },
-  "workOrders": {
-    "title": "Munkarendelések",
-    "subtitle": "Munkarendelések kezelése és adminisztrációja",
-    "create": "Új munkarendelés",
-    "edit": "Munkarendelés szerkesztése",
-    "delete": "Munkarendelés törlése",
-    "view": "Munkarendelés megtekintése",
-    "list": "Munkarendelések listája",
-    "assign": "Munkarendelés hozzárendelése",
-    "complete": "Munkarendelés befejezése",
-    "fields": {
-      "gate": "Kapu",
-      "title": "Cím",
-      "description": "Leírás",
-      "priority": "Prioritás",
-      "status": "Státusz",
-      "assignedTo": "Hozzárendelve",
-      "createdBy": "Létrehozta",
-      "dueDate": "Határidő",
-      "completedDate": "Befejezés dátuma",
-      "estimatedHours": "Becsült órák",
-      "actualHours": "Tényleges órák",
-      "cost": "Költség",
-      "parts": "Alkatrészek",
-      "notes": "Megjegyzések"
-    },
-    "priorities": {
-      "low": "Alacsony",
-      "normal": "Normál",
-      "high": "Magas",
-      "urgent": "Sürgős",
-      "critical": "Kritikus"
-    },
-    "statuses": {
-      "created": "Létrehozva",
-      "assigned": "Hozzárendelve",
-      "inProgress": "Folyamatban",
-      "onHold": "Felfüggesztve",
-      "completed": "Befejezett",
-      "cancelled": "Törölve"
+  "forms": {
+    "validation": {
+      "required": "Ez a mező kötelező",
+      "email": "Érvényes e-mail címet adjon meg",
+      "minLength": "Minimum {{min}} karakter szükséges",
+      "maxLength": "Maximum {{max}} karakter engedélyezett",
+      "numeric": "Csak számokat tartalmazhat",
+      "phoneNumber": "Érvényes telefonszámot adjon meg",
+      "date": "Érvényes dátumot adjon meg"
     }
-  },
-  "users": {
-    "title": "Felhasználók",
-    "subtitle": "Felhasználók kezelése és adminisztrációja",
-    "create": "Új felhasználó",
-    "edit": "Felhasználó szerkesztése",
-    "delete": "Felhasználó törlése",
-    "view": "Felhasználó megtekintése",
-    "list": "Felhasználók listája",
-    "invite": "Felhasználó meghívása",
-    "activate": "Felhasználó aktiválása",
-    "deactivate": "Felhasználó deaktiválása",
-    "resetPassword": "Jelszó visszaállítása",
-    "changePassword": "Jelszó módosítása",
-    "fields": {
-      "username": "Felhasználónév",
-      "email": "E-mail",
-      "firstName": "Keresztnév",
-      "lastName": "Vezetéknév",
-      "displayName": "Megjelenített név",
-      "isActive": "Aktív",
-      "isAdmin": "Adminisztrátor",
-      "roles": "Szerepkörök",
-      "permissions": "Jogosultságok",
-      "lastLogin": "Utolsó bejelentkezés",
-      "createdAt": "Létrehozva",
-      "language": "Nyelv",
-      "timezone": "Időzóna",
-      "theme": "Téma"
-    }
-  },
-  "roles": {
-    "title": "Szerepkörök",
-    "subtitle": "Szerepkörök kezelése és adminisztrációja",
-    "create": "Új szerepkör",
-    "edit": "Szerepkör szerkesztése",
-    "delete": "Szerepkör törlése",
-    "view": "Szerepkör megtekintése",
-    "list": "Szerepkörök listája",
-    "assign": "Szerepkör hozzárendelése",
-    "fields": {
-      "name": "Név",
-      "displayName": "Megjelenített név",
-      "description": "Leírás",
-      "permissions": "Jogosultságok",
-      "usersCount": "Felhasználók száma"
-    },
-    "predefined": {
-      "admin": "Adminisztrátor",
-      "manager": "Menedzser",
-      "inspector": "Ellenőr",
-      "technician": "Technikus",
-      "viewer": "Megtekintő"
-    }
-  },
-  "permissions": {
-    "title": "Jogosultságok",
-    "subtitle": "Jogosultságok kezelése és adminisztrációja",
-    "create": "Új jogosultság",
-    "edit": "Jogosultság szerkesztése",
-    "delete": "Jogosultság törlése",
-    "view": "Jogosultság megtekintése",
-    "list": "Jogosultságok listája",
-    "fields": {
-      "name": "Név",
-      "resource": "Erőforrás",
-      "action": "Művelet",
-      "description": "Leírás"
-    },
-    "resources": {
-      "clients": "Ügyfelek",
-      "sites": "Telephelyek",
-      "buildings": "Épületek",
-      "gates": "Kapuk",
-      "inspections": "Ellenőrzések",
-      "workOrders": "Munkarendelések",
-      "users": "Felhasználók",
-      "roles": "Szerepkörök",
-      "reports": "Jelentések",
-      "settings": "Beállítások"
-    },
-    "actions": {
-      "create": "Létrehozás",
-      "read": "Olvasás",
-      "update": "Frissítés",
-      "delete": "Törlés",
-      "manage": "Kezelés",
-      "export": "Exportálás",
-      "import": "Importálás"
-    }
-  },
-  "reports": {
-    "title": "Jelentések",
-    "subtitle": "Jelentések és analitika",
-    "generate": "Jelentés generálása",
-    "export": "Jelentés exportálása",
-    "schedule": "Jelentés ütemezése",
-    "templates": "Jelentés sablonok",
-    "types": {
-      "inspection": "Ellenőrzési jelentés",
-      "maintenance": "Karbantartási jelentés",
-      "workOrder": "Munkarendelési jelentés",
-      "gate": "Kapu jelentés",
-      "client": "Ügyfél jelentés",
-      "financial": "Pénzügyi jelentés",
-      "performance": "Teljesítmény jelentés",
-      "audit": "Audit jelentés"
-    },
-    "formats": {
-      "pdf": "PDF",
-      "excel": "Excel",
-      "csv": "CSV",
-      "html": "HTML"
-    },
-    "periods": {
-      "daily": "Napi",
-      "weekly": "Heti",
-      "monthly": "Havi",
-      "quarterly": "Negyedéves",
-      "yearly": "Éves",
-      "custom": "Egyéni"
-    }
-  },
-  "templates": {
-    "title": "Sablonok",
-    "subtitle": "Dokumentum sablonok kezelése",
-    "create": "Új sablon",
-    "edit": "Sablon szerkesztése",
-    "delete": "Sablon törlése",
-    "view": "Sablon megtekintése",
-    "list": "Sablonok listája",
-    "preview": "Előnézet",
-    "publish": "Közzététel",
-    "version": "Verzió",
-    "history": "Verziótörténet",
-    "wysiwyg": {
-      "editor": "WYSIWYG szerkesztő",
-      "toolbar": "Eszköztár",
-      "preview": "Előnézet",
-      "source": "Forráskód",
-      "variables": "Változók",
-      "metadata": "Metaadatok",
-      "settings": "Beállítások"
-    },
-    "fields": {
-      "name": "Név",
-      "description": "Leírás",
-      "type": "Típus",
-      "category": "Kategória",
-      "version": "Verzió",
-      "status": "Státusz",
-      "language": "Nyelv",
-      "format": "Formátum",
-      "pageSize": "Papírméret",
-      "orientation": "Tájolás"
-    },
-    "variables": {
-      "document": "Dokumentum változók",
-      "organization": "Szervezet változók",
-      "client": "Ügyfél változók",
-      "gate": "Kapu változók",
-      "inspection": "Ellenőrzés változók",
-      "user": "Felhasználó változók",
-      "date": "Dátum változók"
-    }
-  },
-  "settings": {
-    "title": "Beállítások",
-    "subtitle": "Rendszer beállítások és konfiguráció",
-    "general": "Általános",
-    "security": "Biztonság",
-    "notifications": "Értesítések",
-    "integrations": "Integrációk",
-    "appearance": "Megjelenés",
-    "localization": "Honosítás",
-    "backup": "Biztonsági mentés",
-    "maintenance": "Karbantartás",
-    "fields": {
-      "siteName": "Webhely neve",
-      "siteDescription": "Webhely leírása",
-      "contactEmail": "Kapcsolattartó e-mail",
-      "supportEmail": "Támogatási e-mail",
-      "defaultLanguage": "Alapértelmezett nyelv",
-      "defaultTimezone": "Alapértelmezett időzóna",
-      "dateFormat": "Dátum formátum",
-      "timeFormat": "Idő formátum",
-      "currencySymbol": "Pénznem szimbólum",
-      "currencyCode": "Pénznem kód",
-      "sessionTimeout": "Munkamenet időtúllépés",
-      "passwordPolicy": "Jelszó szabályzat",
-      "twoFactorAuth": "Kétfaktoros hitelesítés",
-      "emailNotifications": "E-mail értesítések",
-      "pushNotifications": "Push értesítések",
-      "maintenanceMode": "Karbantartási mód"
-    }
-  },
-  "validation": {
-    "required": "Ez a mező kötelező",
-    "email": "Érvényes e-mail címet adjon meg",
-    "phone": "Érvényes telefonszámot adjon meg",
-    "url": "Érvényes URL-t adjon meg",
-    "minLength": "Legalább {{min}} karakter szükséges",
-    "maxLength": "Maximum {{max}} karakter megengedett",
-    "min": "A minimum érték {{min}}",
-    "max": "A maximum érték {{max}}",
-    "pattern": "A formátum nem megfelelő",
-    "unique": "Ez az érték már használatban van",
-    "passwordStrength": "A jelszó nem elég erős",
-    "passwordMatch": "A jelszavak nem egyeznek",
-    "fileSize": "A fájl mérete túl nagy",
-    "fileType": "Nem támogatott fájltípus",
-    "dateRange": "Érvénytelen dátumtartomány",
-    "futureDate": "A dátum nem lehet jövőbeli",
-    "pastDate": "A dátum nem lehet múltbeli"
-  },
-  "notifications": {
-    "types": {
-      "info": "Információ",
-      "success": "Siker",
-      "warning": "Figyelmeztetés",
-      "error": "Hiba"
-    },
-    "actions": {
-      "markAsRead": "Olvasottnak jelölés",
-      "markAllAsRead": "Összes olvasottnak jelölése",
-      "delete": "Törlés",
-      "deleteAll": "Összes törlése"
-    },
-    "messages": {
-      "noNotifications": "Nincsenek értesítések",
-      "newInspection": "Új ellenőrzés érkezett",
-      "inspectionOverdue": "Ellenőrzés lejárt",
-      "workOrderAssigned": "Munkarendelés hozzárendelve",
-      "workOrderCompleted": "Munkarendelés befejezve",
-      "userInvited": "Felhasználó meghívva",
-      "passwordChanged": "Jelszó megváltoztatva",
-      "systemMaintenance": "Rendszer karbantartás",
-      "dataBackup": "Adatok biztonsági mentése"
-    }
-  },
-  "calendar": {
-    "title": "Naptár",
-    "subtitle": "Események és ütemezések",
-    "today": "Ma",
-    "week": "Hét",
-    "month": "Hónap",
-    "year": "Év",
-    "agenda": "Napirend",
-    "event": "Esemény",
-    "events": "Események",
-    "addEvent": "Esemény hozzáadása",
-    "editEvent": "Esemény szerkesztése",
-    "deleteEvent": "Esemény törlése",
-    "noEvents": "Nincsenek események",
-    "allDay": "Egész nap",
-    "startDate": "Kezdő dátum",
-    "endDate": "Befejező dátum",
-    "startTime": "Kezdő idő",
-    "endTime": "Befejező idő",
-    "repeat": "Ismétlés",
-    "reminder": "Emlékeztető",
-    "location": "Helyszín",
-    "attendees": "Résztvevők"
   },
   "formats": {
-    "date": {
-      "short": "YYYY.MM.DD",
-      "medium": "YYYY. MMM DD.",
-      "long": "YYYY. MMMM DD., dddd",
-      "full": "YYYY. MMMM DD., dddd"
-    },
-    "time": {
-      "short": "HH:mm",
-      "medium": "HH:mm:ss",
-      "long": "HH:mm:ss Z"
-    },
     "currency": {
       "symbol": "Ft",
       "code": "HUF",
@@ -621,34 +205,20 @@
       "decimal": ",",
       "thousand": " "
     },
+    "date": {
+      "short": "yyyy.MM.dd.",
+      "medium": "yyyy. MMM dd.",
+      "long": "yyyy. MMMM dd.",
+      "full": "yyyy. MMMM dd., EEEE"
+    },
+    "time": {
+      "short": "HH:mm",
+      "medium": "HH:mm:ss",
+      "long": "HH:mm:ss z"
+    },
     "number": {
       "decimal": ",",
       "thousand": " "
     }
-  },
-  "pdf": {
-    "header": {
-      "title": "Garázs Nyilvántartó Rendszer"
-    },
-    "content": {
-      "created": "Létrehozva: {{date}}"
-    },
-    "footer": {
-      "generated": "{{system}} rendszer által generálva {{date}}"
-    }
-  },
-  "invoice": {
-    "title": "Számla",
-    "number": "Számlaszám: {{number}}",
-    "customer": "Ügyfél: {{name}}",
-    "issueDate": "Kiállítás dátuma: {{date}}",
-    "dueDate": "Fizetési határidő: {{date}}",
-    "total": "Összesen: {{total}}",
-    "footer": "Köszönjük a bizalmát!"
-  },
-  "report": {
-    "period": "Időszak: {{from}} - {{to}}",
-    "summary": "Összesítés",
-    "generated": "Jelentés generálva: {{date}}"
   }
 }
